@@ -6,6 +6,54 @@ A running record of what has been built. Add a new dated entry after each major 
 
 ---
 
+## 2026-10-01 — Guest login and a fuller preview
+
+Auth for the demo account is real. Posts, friends, messages, comments, and groups are still preview data in the browser.
+
+- Login has **Continue as Guest**. `POST /guest-login` finds or creates `guest@huddle.app` and signs that user in, then opens the feed. `GuestUserSeeder` creates the same account.
+- Sample data is larger: 15 members, 18 posts with likes, dislikes, and comments, more friendship states, more direct threads, and 3 group chats.
+- Posts can be liked or disliked (one or the other), commented on, and shared into a direct message or a group. Messages can start a new simulated group from the friend list.
+
+---
+
+## 2026-10-01 — Home URL opens login or the feed
+
+`GET /` no longer renders the Laravel welcome page. Guests are sent to login. Signed-in members are sent to `/dashboard`. `Pages/Welcome.jsx` was removed.
+
+---
+
+## 2026-10-01 — Frontend folders grouped for a first read
+
+No behavior changed. Files moved, imports updated, and short comments added so the new design and the Breeze UI are obvious next to each other.
+
+- `docs/ARCHITECTURE.md` now opens with the backend half (`app/`, `routes/`, `database/`) and the frontend half (`resources/js/`).
+- React components are grouped: `Components/ui/` (button, avatar, icons, logo), `Components/social/` (navbar, post, member, friend button), `Components/breeze/` (the original inputs, modal, and buttons).
+- Layouts, both logos, and both button sets have a header comment saying which system they belong to and why the other one is still here.
+
+---
+
+## 2026-10-01 — Login and register match the social UI
+
+Visual-only pass on the two auth screens, plus two unused style leftovers removed. Breeze routes, controllers, validation, and session handling were not changed.
+
+- `Login` and `Register` now use the script logotype, black button, and the same field styling as the rest of the app. Remember me, forgot password, validation errors, and the existing `useForm` posts are unchanged.
+- Removed unused `ghost` and `danger` variants from `Components/Button.jsx`.
+- Removed unused `fontFamily.logo` from `tailwind.config.js`. The wordmark still uses `.logo-script`.
+
+---
+
+## 2026-10-01 — Design screens migrated into Inertia
+
+The Amera/Figma export in `design-reference/` is now the logged-in UI. Login, register, password reset, and the Breeze account page (`/profile`) were left as they were.
+
+- Home (`/dashboard`), Members, Friends, Messages, and Profile (`/me`) use the black-and-white layout: script logotype, sidebar, and mobile tab bar.
+- Shared pieces live in `resources/js/Components/` (navbar, avatar, button, post card, member card, friend button, icons, logo).
+- Sample posts, members, friendships, and messages are passed as Inertia props from `App\Support\PreviewData`. The signed-in user's name and email replace the placeholder viewer. Likes, posts, friend actions, and messages update in the browser only — they are not saved yet.
+- Tailwind 3 theme colors (`ink`, `muted`, `line`, `wash`, `hover`, `heart`) and the Grand Hotel logotype were added so the export's class names resolve. The export itself used Tailwind 4 and React Router.
+- `design-reference/` was removed after the screens were ported.
+
+---
+
 ## 2026-09-12 — Safe boilerplate cleanup
 
 Removed leftover Laravel skeleton files that Huddle does not use. Welcome/Dashboard and Breeze auth were left untouched.

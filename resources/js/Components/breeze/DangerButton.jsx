@@ -1,3 +1,5 @@
+// Breeze danger button. Still used by the delete-account dialog.
+// New screens use Components/ui/Button. Both stay until the Breeze UI is retired.
 export default function DangerButton({
     className = '',
     disabled,

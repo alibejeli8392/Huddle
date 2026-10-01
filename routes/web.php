@@ -1,22 +1,27 @@
 <?php
 
+use App\Http\Controllers\FeedController;
+use App\Http\Controllers\FriendController;
+use App\Http\Controllers\MemberController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+
+    return redirect()->route('login');
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', [FeedController::class, 'index'])->name('dashboard');
+    Route::get('/members', [MemberController::class, 'index'])->name('members.index');
+    Route::get('/friends', [FriendController::class, 'index'])->name('friends.index');
+    Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+    Route::get('/me', [ProfileController::class, 'show'])->name('profile.show');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

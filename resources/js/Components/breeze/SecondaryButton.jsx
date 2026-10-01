@@ -1,3 +1,5 @@
+// Breeze secondary button. Still used by the delete-account dialog.
+// New screens use Components/ui/Button with variant="secondary". Both stay until the Breeze UI is retired.
 export default function SecondaryButton({
     type = 'button',
     className = '',

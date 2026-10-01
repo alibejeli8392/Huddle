@@ -1,3 +1,5 @@
+// Breeze Laravel mark, used by GuestLayout and AuthenticatedLayout.
+// The script wordmark is Logo in Components/ui. Both stay until those Breeze screens use the new logo.
 export default function ApplicationLogo(props) {
     return (
         <svg

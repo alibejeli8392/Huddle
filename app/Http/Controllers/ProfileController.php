@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Support\PreviewData;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,15 @@ use Inertia\Response;
 
 class ProfileController extends Controller
 {
+    /**
+     * Display the member profile from the design (photo, title, bio).
+     * Account email, password, and deletion stay on edit().
+     */
+    public function show(Request $request): Response
+    {
+        return Inertia::render('Profile/Show', PreviewData::forUser($request->user()));
+    }
+
     /**
      * Display the user's profile form.
      */

@@ -1,4 +1,6 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
+// Breeze shell for the older auth screens (forgot password, reset, verify email, confirm password).
+// Login and Register use AuthFrame. This stays until those remaining screens are restyled.
+import ApplicationLogo from '@/Components/breeze/ApplicationLogo';
 import { Link } from '@inertiajs/react';
 
 export default function GuestLayout({ children }) {

@@ -1,3 +1,5 @@
+// Breeze primary button. Still used by account settings and the older auth pages.
+// New screens use Components/ui/Button. Both stay until the Breeze UI is retired.
 export default function PrimaryButton({
     className = '',
     disabled,

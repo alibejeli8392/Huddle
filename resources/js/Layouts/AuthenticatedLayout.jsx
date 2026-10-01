@@ -1,7 +1,9 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import Dropdown from '@/Components/Dropdown';
-import NavLink from '@/Components/NavLink';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+// Breeze shell for account settings (/profile): email, password, delete account.
+// The social screens use AppLayout. This stays until that page moves onto the new design.
+import ApplicationLogo from '@/Components/breeze/ApplicationLogo';
+import Dropdown from '@/Components/breeze/Dropdown';
+import NavLink from '@/Components/breeze/NavLink';
+import ResponsiveNavLink from '@/Components/breeze/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
