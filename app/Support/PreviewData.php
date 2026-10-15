@@ -120,6 +120,22 @@ class PreviewData
     /**
      * @return array<int, array<string, mixed>>
      */
+    public static function sampleMembers(): array
+    {
+        return self::members();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public static function samplePosts(): array
+    {
+        return self::posts();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     private static function members(): array
     {
         return [

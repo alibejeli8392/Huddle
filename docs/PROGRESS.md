@@ -6,6 +6,16 @@ A running record of what has been built. Add a new dated entry after each major 
 
 ---
 
+## 2026-10-15 — Home feed is stored in the database
+
+Posts, likes, and comments on Home are real. Members, friends, messages, groups, and the profile preview still come from `PreviewData`.
+
+- `DemoSeeder` creates the 15 sample members, the guest account, and the sample posts with likes and comments. Running it again updates those rows instead of duplicating them.
+- Home loads posts from the database. Creating a post, liking, commenting, and deleting your own post go through the server.
+- Sharing a post still drops it into a preview conversation.
+
+---
+
 ## 2026-10-15 — Database tables for posts, friends, and messages
 
 Schema only. Screens still read `PreviewData`.

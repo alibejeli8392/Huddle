@@ -18,9 +18,14 @@ function initials(name) {
     return (first + last).toUpperCase();
 }
 
+function imageSource(src) {
+    return typeof src === 'string' && src.startsWith('http') ? src : '';
+}
+
 export default function Avatar({ src, name, size = 'md', className = '' }) {
     const [failed, setFailed] = useState(false);
-    const showImage = Boolean(src) && !failed;
+    const image = imageSource(src);
+    const showImage = Boolean(image) && !failed;
     const letters = useMemo(() => initials(name || ''), [name]);
 
     return (
@@ -34,7 +39,7 @@ export default function Avatar({ src, name, size = 'md', className = '' }) {
         >
             {showImage ? (
                 <img
-                    src={src}
+                    src={image}
                     alt=""
                     className="h-full w-full object-cover"
                     onError={() => setFailed(true)}

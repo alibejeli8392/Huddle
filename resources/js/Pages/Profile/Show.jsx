@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import Avatar from '@/Components/ui/Avatar';
 import Button from '@/Components/ui/Button';
 import { CameraIcon } from '@/Components/ui/Icons';
@@ -16,7 +16,8 @@ const tabs = [
 ];
 
 export default function Show({ tab = 'profile', mustVerifyEmail, status }) {
-    const { viewer, updateProfile, friendsOf, state } = useHuddle();
+    const { viewer, updateProfile, friendsOf } = useHuddle();
+    const previewPosts = usePage().props.posts ?? [];
     const fileRef = useRef(null);
     const [name, setName] = useState(viewer?.name ?? '');
     const [title, setTitle] = useState(viewer?.title ?? '');
@@ -29,7 +30,7 @@ export default function Show({ tab = 'profile', mustVerifyEmail, status }) {
     }
 
     const friendCount = friendsOf(viewer.id).length;
-    const postCount = state.posts.filter((post) => post.authorId === viewer.id).length;
+    const postCount = previewPosts.filter((post) => post.authorId === viewer.id).length;
 
     const onFile = (file) => {
         if (!file) {

@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,6 +19,10 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [FeedController::class, 'index'])->name('dashboard');
+    Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+    Route::post('/posts/{post}/like', [PostController::class, 'toggleLike'])->name('posts.like');
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+    Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('posts.comments.store');
     Route::get('/members', [MemberController::class, 'index'])->name('members.index');
     Route::get('/friends', [FriendController::class, 'index'])->name('friends.index');
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');

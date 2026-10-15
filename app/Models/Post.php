@@ -39,4 +39,37 @@ class Post extends Model
     {
         return $this->belongsToMany(User::class, 'post_likes')->withTimestamps();
     }
+
+    /**
+     * @return array{
+     *     id: int,
+     *     text: string,
+     *     createdAt: int,
+     *     likesCount: int,
+     *     liked: bool,
+     *     commentsCount: int,
+     *     canDelete: bool,
+     *     author: array<string, mixed>|null,
+     *     comments: array<int, array<string, mixed>>
+     * }
+     */
+    public function toFeedItem(User $viewer): array
+    {
+        return [
+            'id' => $this->id,
+            'text' => $this->body,
+            'createdAt' => ($this->created_at?->getTimestamp() ?? 0) * 1000,
+            'likesCount' => (int) $this->likers_count,
+            'liked' => (bool) $this->liked,
+            'commentsCount' => (int) $this->comments_count,
+            'canDelete' => $this->user_id === $viewer->id,
+            'author' => $this->user?->toAuthorCard(),
+            'comments' => $this->comments->map(fn (Comment $comment): array => [
+                'id' => $comment->id,
+                'text' => $comment->body,
+                'createdAt' => ($comment->created_at?->getTimestamp() ?? 0) * 1000,
+                'author' => $comment->user?->toAuthorCard(),
+            ])->all(),
+        ];
+    }
 }

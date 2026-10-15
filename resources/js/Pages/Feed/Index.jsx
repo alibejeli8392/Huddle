@@ -1,14 +1,16 @@
 import { useRef, useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import Avatar from '@/Components/ui/Avatar';
 import Button from '@/Components/ui/Button';
 import PostCard from '@/Components/social/PostCard';
 import AppLayout from '@/Layouts/AppLayout';
 import { useHuddle } from '@/context/HuddleContext';
 
-export default function Index() {
-    const { viewer, state, addPost } = useHuddle();
+export default function Index({ posts = [] }) {
+    const { viewer } = useHuddle();
+    const { errors } = usePage().props;
     const [text, setText] = useState('');
+    const [posting, setPosting] = useState(false);
     const fieldRef = useRef(null);
 
     const growField = (field) => {
@@ -20,21 +22,29 @@ export default function Index() {
         return null;
     }
 
-    const posts = [...state.posts].sort((a, b) => b.createdAt - a.createdAt);
-
     const submit = (event) => {
         event.preventDefault();
 
-        if (!text.trim()) {
+        if (!text.trim() || posting) {
             return;
         }
 
-        addPost(text);
-        setText('');
+        router.post(
+            route('posts.store'),
+            { body: text },
+            {
+                preserveScroll: true,
+                onStart: () => setPosting(true),
+                onFinish: () => setPosting(false),
+                onSuccess: () => {
+                    setText('');
 
-        if (fieldRef.current) {
-            fieldRef.current.style.height = 'auto';
-        }
+                    if (fieldRef.current) {
+                        fieldRef.current.style.height = 'auto';
+                    }
+                },
+            },
+        );
     };
 
     return (
@@ -57,9 +67,10 @@ export default function Index() {
                                 rows={2}
                                 className="min-h-[3rem] w-full overflow-hidden border-0 bg-transparent p-0 text-[15px] leading-relaxed text-ink shadow-none placeholder:text-muted focus:outline-none focus:ring-0"
                             />
+                            {errors?.body && <p className="mt-1 text-sm text-heart">{errors.body}</p>}
                             <div className="mt-2 flex items-center justify-between">
                                 <span className="text-xs text-muted">Public · Everyone at work</span>
-                                <Button type="submit" size="sm" disabled={!text.trim()}>
+                                <Button type="submit" size="sm" disabled={!text.trim() || posting}>
                                     Post
                                 </Button>
                             </div>

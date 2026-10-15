@@ -34,6 +34,19 @@ class User extends Authenticatable
         ];
     }
 
+    public function toAuthorCard(): array
+    {
+        $avatar = $this->avatar_path;
+
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'title' => $this->title,
+            'department' => $this->department,
+            'avatar' => is_string($avatar) && str_starts_with($avatar, 'http') ? $avatar : null,
+        ];
+    }
+
     /**
      * @return HasMany<Post, $this>
      */

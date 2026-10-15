@@ -14,11 +14,6 @@ function normalize(seed) {
         viewer: seed.viewer,
         members: seed.members ?? [],
         friendships: seed.friendships ?? [],
-        posts: (seed.posts ?? []).map((post) => ({
-            ...post,
-            likes: post.likes ?? [],
-            comments: post.comments ?? [],
-        })),
         messages: (seed.messages ?? []).map((message) => ({
             text: '',
             sharedPost: null,
@@ -36,7 +31,7 @@ function normalize(seed) {
 }
 
 export function HuddleProvider({ children }) {
-    const { viewer, members, posts, friendships, messages, groups, groupMessages } = usePage().props;
+    const { viewer, members, friendships, messages, groups, groupMessages } = usePage().props;
 
     const [state, setState] = useState(() => {
         if (memory && memory.viewer?.id === viewer?.id && Array.isArray(memory.groups)) {
@@ -46,7 +41,6 @@ export function HuddleProvider({ children }) {
         const next = normalize({
             viewer,
             members,
-            posts,
             friendships,
             messages,
             groups,
@@ -185,80 +179,6 @@ export function HuddleProvider({ children }) {
                 viewer: { ...prev.viewer, ...patch },
                 members: prev.members.map((member) =>
                     member.id === prev.viewer.id ? { ...member, ...patch } : member,
-                ),
-            }));
-        },
-        [commit, viewerUser],
-    );
-
-    const addPost = useCallback(
-        (text) => {
-            if (!viewerUser) {
-                return null;
-            }
-
-            const post = {
-                id: uid('p'),
-                authorId: viewerUser.id,
-                text: text.trim(),
-                createdAt: Date.now(),
-                likes: [],
-                comments: [],
-            };
-
-            commit((prev) => ({ ...prev, posts: [post, ...prev.posts] }));
-
-            return post;
-        },
-        [commit, viewerUser],
-    );
-
-    const toggleLike = useCallback(
-        (postId) => {
-            if (!viewerUser) {
-                return;
-            }
-
-            commit((prev) => ({
-                ...prev,
-                posts: prev.posts.map((post) => {
-                    if (post.id !== postId) {
-                        return post;
-                    }
-
-                    const liked = post.likes.includes(viewerUser.id);
-
-                    return {
-                        ...post,
-                        likes: liked
-                            ? post.likes.filter((id) => id !== viewerUser.id)
-                            : [...post.likes, viewerUser.id],
-                    };
-                }),
-            }));
-        },
-        [commit, viewerUser],
-    );
-
-    const addComment = useCallback(
-        (postId, text) => {
-            const body = text.trim();
-
-            if (!viewerUser || body === '') {
-                return;
-            }
-
-            const comment = {
-                id: uid('c'),
-                authorId: viewerUser.id,
-                text: body,
-                createdAt: Date.now(),
-            };
-
-            commit((prev) => ({
-                ...prev,
-                posts: prev.posts.map((post) =>
-                    post.id === postId ? { ...post, comments: [...post.comments, comment] } : post,
                 ),
             }));
         },
@@ -488,25 +408,18 @@ export function HuddleProvider({ children }) {
     );
 
     const sharePost = useCallback(
-        (postId, destination) => {
-            if (!viewerUser) {
+        (post, destination) => {
+            if (!viewerUser || !post) {
                 return;
             }
 
+            const sharedPost = {
+                id: post.id,
+                authorName: post.author?.name ?? 'Someone',
+                text: post.text ?? '',
+            };
+
             commit((prev) => {
-                const post = prev.posts.find((item) => item.id === postId);
-
-                if (!post) {
-                    return prev;
-                }
-
-                const author = prev.members.find((member) => member.id === post.authorId);
-                const sharedPost = {
-                    id: post.id,
-                    authorName: author?.name ?? 'Someone',
-                    text: post.text,
-                };
-
                 if (destination.kind === 'dm') {
                     return {
                         ...prev,
@@ -575,9 +488,6 @@ export function HuddleProvider({ children }) {
             markDirectRead,
             markGroupRead,
             updateProfile,
-            addPost,
-            toggleLike,
-            addComment,
             sendFriendRequest,
             acceptRequest,
             declineRequest,
@@ -600,9 +510,6 @@ export function HuddleProvider({ children }) {
             markDirectRead,
             markGroupRead,
             updateProfile,
-            addPost,
-            toggleLike,
-            addComment,
             sendFriendRequest,
             acceptRequest,
             declineRequest,

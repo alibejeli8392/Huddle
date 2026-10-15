@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { router } from '@inertiajs/react';
 import Avatar from '@/Components/ui/Avatar';
 import Button from '@/Components/ui/Button';
 import Dialog from '@/Components/ui/Dialog';
@@ -8,14 +9,13 @@ import { useHuddle } from '@/context/HuddleContext';
 import { timeAgo } from '@/utils/time';
 
 export default function PostCard({ post }) {
-    const { userById, viewer, friendsOf, state, toggleLike, addComment, sharePost } = useHuddle();
+    const { viewer, friendsOf, state, sharePost } = useHuddle();
     const [pop, setPop] = useState(false);
     const [commentsOpen, setCommentsOpen] = useState(false);
     const [draft, setDraft] = useState('');
     const [shareOpen, setShareOpen] = useState(false);
     const [sharedWith, setSharedWith] = useState('');
-    const author = userById(post.authorId);
-    const liked = viewer ? post.likes.includes(viewer.id) : false;
+    const author = post.author;
     const comments = post.comments ?? [];
     const friends = viewer ? friendsOf(viewer.id) : [];
     const groups = state.groups ?? [];
@@ -35,19 +35,36 @@ export default function PostCard({ post }) {
     }
 
     const onLike = () => {
-        toggleLike(post.id);
         setPop(true);
+        router.post(route('posts.like', post.id), {}, { preserveScroll: true });
     };
 
     const sendComment = (event) => {
         event.preventDefault();
-        addComment(post.id, draft);
-        setDraft('');
-        setCommentsOpen(true);
+
+        if (!draft.trim()) {
+            return;
+        }
+
+        router.post(
+            route('posts.comments.store', post.id),
+            { body: draft },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setDraft('');
+                    setCommentsOpen(true);
+                },
+            },
+        );
+    };
+
+    const removePost = () => {
+        router.delete(route('posts.destroy', post.id), { preserveScroll: true });
     };
 
     const sendShare = (destination, label) => {
-        sharePost(post.id, destination);
+        sharePost(post, destination);
         setShareOpen(false);
         setSharedWith(label);
     };
@@ -70,13 +87,13 @@ export default function PostCard({ post }) {
             <div className="mt-3 flex items-center gap-4 px-1 text-sm">
                 <button
                     type="button"
-                    aria-label={liked ? 'Unlike' : 'Like'}
+                    aria-label={post.liked ? 'Unlike' : 'Like'}
                     onClick={onLike}
                     onAnimationEnd={() => setPop(false)}
-                    className={`flex items-center gap-1 ${liked ? 'text-heart' : 'text-ink'} ${pop ? 'heart-pop' : ''}`}
+                    className={`flex items-center gap-1 ${post.liked ? 'text-heart' : 'text-ink'} ${pop ? 'heart-pop' : ''}`}
                 >
-                    <HeartIcon size={22} filled={liked} />
-                    <span className="text-xs font-semibold">{post.likes.length}</span>
+                    <HeartIcon size={22} filled={post.liked} />
+                    <span className="text-xs font-semibold">{post.likesCount}</span>
                 </button>
                 <button
                     type="button"
@@ -94,6 +111,11 @@ export default function PostCard({ post }) {
                     <ShareIcon size={20} />
                     <span className="text-xs font-semibold">Share</span>
                 </button>
+                {post.canDelete && (
+                    <button type="button" onClick={removePost} className="text-xs font-semibold text-muted">
+                        Delete
+                    </button>
+                )}
             </div>
 
             {commentsOpen && (
@@ -103,7 +125,7 @@ export default function PostCard({ post }) {
                     ) : (
                         <ul className="space-y-3">
                             {comments.map((comment) => {
-                                const commenter = userById(comment.authorId);
+                                const commenter = comment.author;
 
                                 return (
                                     <li key={comment.id} className="flex gap-2">
