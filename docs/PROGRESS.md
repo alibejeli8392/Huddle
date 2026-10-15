@@ -6,6 +6,43 @@ A running record of what has been built. Add a new dated entry after each major 
 
 ---
 
+## 2026-10-15 — Home posts drop dislike, composer sits tighter
+
+- Post cards no longer have a dislike button or count. Like still toggles on and off. Comment and Share stay.
+- The Home composer starts at about two lines and grows with the text, so "Public · Everyone at work" sits just under the field. Post stays disabled until there is text.
+
+---
+
+## 2026-10-15 — Share opens on screen and confirms the send
+
+The share dialog was a fixed layer inside the feed's entrance animation. That animation leaves a transform on the page, so the dialog was centered in the full feed instead of the window. The friend list sat below the fold, and a click on the dimmed page closed the dialog.
+
+- The dialog now mounts on the document, so it stays in view. Choosing a friend or group still inserts the post into that conversation.
+- After sending, a short "Shared with <name>" note appears and then goes away.
+- The share control is a curved arrow with the word Share, at the right end of the like, dislike, and comment row.
+
+---
+
+## 2026-10-15 — Feed posts stay off the Messages page
+
+The Messages "Company" channel was rendering the same post list as Home, and sending there created a feed post.
+
+- Messages now lists only direct conversations and group chats. The Company row and the Public/Private switch are gone.
+- A new Home post is stored with the feed only. It does not show up in a conversation.
+- Share still copies one post into the friend or group chat the member picks.
+
+---
+
+## 2026-10-15 — Labeled navigation and one profile page
+
+Structure only. Colors, fonts, and the black-and-white look are unchanged.
+
+- Sidebar and mobile tab bar now read Home, People, Friends, Messages, Profile. The active item is filled black on desktop and underlined on mobile.
+- Friends shows a count of pending incoming requests. Messages shows a count of unread preview messages (direct and group). The badge hides at zero. Accepting or declining a request, or opening a conversation, updates the count.
+- `/me` is the only profile screen, with Profile and Account settings tabs. Account settings is the existing name, email, password, and delete forms inside the app shell. `GET /profile` redirects to `/me?tab=account`. Patch and delete still post to `/profile`.
+
+---
+
 ## 2026-10-01 — Guest login and a fuller preview
 
 Auth for the demo account is real. Posts, friends, messages, comments, and groups are still preview data in the browser.

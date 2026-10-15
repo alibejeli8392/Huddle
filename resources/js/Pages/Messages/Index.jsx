@@ -3,7 +3,7 @@ import { Head } from '@inertiajs/react';
 import Avatar from '@/Components/ui/Avatar';
 import Button from '@/Components/ui/Button';
 import Dialog from '@/Components/ui/Dialog';
-import { HashIcon, SendIcon } from '@/Components/ui/Icons';
+import { SendIcon } from '@/Components/ui/Icons';
 import AppLayout from '@/Layouts/AppLayout';
 import { useHuddle } from '@/context/HuddleContext';
 import { timeAgo } from '@/utils/time';
@@ -28,13 +28,14 @@ export default function Index() {
         state,
         userById,
         friendsOf,
-        addPost,
         sendPrivateMessage,
         sendGroupMessage,
         createGroup,
         threadWith,
+        markDirectRead,
+        markGroupRead,
     } = useHuddle();
-    const [channel, setChannel] = useState('public');
+    const [channel, setChannel] = useState(null);
     const [peerId, setPeerId] = useState(null);
     const [groupId, setGroupId] = useState(null);
     const [text, setText] = useState('');
@@ -44,7 +45,6 @@ export default function Index() {
     const bottomRef = useRef(null);
 
     const friends = viewer ? friendsOf(viewer.id) : [];
-    const others = state.members.filter((member) => member.id !== viewer?.id);
     const groups = state.groups ?? [];
 
     const people = useMemo(() => {
@@ -68,11 +68,6 @@ export default function Index() {
         return [...map.values()];
     }, [friends, state.messages, viewer, userById]);
 
-    const publicMessages = useMemo(
-        () => [...state.posts].sort((a, b) => a.createdAt - b.createdAt),
-        [state.posts],
-    );
-
     const privateMessages = peerId ? threadWith(peerId) : [];
     const peer = peerId ? userById(peerId) : undefined;
     const group = groups.find((item) => item.id === groupId);
@@ -82,18 +77,38 @@ export default function Index() {
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [channel, peerId, groupId, publicMessages.length, privateMessages.length, groupMessages.length]);
+    }, [channel, peerId, groupId, privateMessages.length, groupMessages.length]);
+
+    useEffect(() => {
+        if (channel === 'dm' && peerId) {
+            markDirectRead(peerId);
+        }
+    }, [channel, peerId, markDirectRead]);
+
+    useEffect(() => {
+        if (channel === 'group' && groupId) {
+            markGroupRead(groupId);
+        }
+    }, [channel, groupId, markGroupRead]);
+
+    const unreadWith = (userId) =>
+        state.messages.filter(
+            (message) => message.unread && message.fromId === userId && message.toId === viewer?.id,
+        ).length;
+
+    const unreadInGroup = (id) =>
+        (state.groupMessages ?? []).filter(
+            (message) => message.unread && message.groupId === id && message.fromId !== viewer?.id,
+        ).length;
 
     if (!viewer) {
         return null;
     }
 
     const canSend =
-        channel === 'public'
-            ? Boolean(text.trim())
-            : channel === 'dm'
-              ? Boolean(text.trim() && peerId)
-              : Boolean(text.trim() && groupId);
+        channel === 'dm'
+            ? Boolean(text.trim() && peerId)
+            : channel === 'group' && Boolean(text.trim() && groupId);
 
     const submit = (event) => {
         event.preventDefault();
@@ -102,21 +117,13 @@ export default function Index() {
             return;
         }
 
-        if (channel === 'public') {
-            addPost(text);
-        } else if (channel === 'dm' && peerId) {
+        if (channel === 'dm' && peerId) {
             sendPrivateMessage(peerId, text);
         } else if (channel === 'group' && groupId) {
             sendGroupMessage(groupId, text);
         }
 
         setText('');
-    };
-
-    const selectPublic = () => {
-        setChannel('public');
-        setPeerId(null);
-        setGroupId(null);
     };
 
     const selectPeer = (id) => {
@@ -153,29 +160,12 @@ export default function Index() {
         <>
             <Head title="Messages" />
 
-            <div className="mx-auto flex h-[calc(100dvh-7rem)] max-w-[1100px] overflow-hidden lg:h-screen">
+            <div className="mx-auto flex h-[calc(100dvh-7.5rem)] max-w-[1100px] overflow-hidden lg:h-screen">
                 <aside className="flex w-[92px] min-h-0 shrink-0 flex-col border-r border-line sm:w-[280px]">
                     <div className="flex h-14 items-center border-b border-line px-4">
                         <h1 className="truncate text-base font-semibold">Messages</h1>
                     </div>
                     <div className="ig-scroll flex-1 overflow-y-auto">
-                        <button
-                            type="button"
-                            onClick={selectPublic}
-                            className={cn(
-                                'flex w-full items-center gap-3 px-3 py-3 text-left hover:bg-hover',
-                                channel === 'public' && 'bg-wash',
-                            )}
-                        >
-                            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black text-white">
-                                <HashIcon size={18} />
-                            </span>
-                            <span className="hidden min-w-0 sm:block">
-                                <span className="block truncate text-sm font-semibold">Company</span>
-                                <span className="block truncate text-xs text-muted">Public · everyone</span>
-                            </span>
-                        </button>
-
                         <div className="flex items-center justify-between px-3 pt-4 pb-1">
                             <p className="hidden text-[11px] font-semibold tracking-wide text-muted uppercase sm:block">
                                 Group chats
@@ -188,7 +178,10 @@ export default function Index() {
                                 New
                             </button>
                         </div>
-                        {groups.map((item) => (
+                        {groups.map((item) => {
+                            const unread = unreadInGroup(item.id);
+
+                            return (
                             <button
                                 key={item.id}
                                 type="button"
@@ -198,8 +191,15 @@ export default function Index() {
                                     channel === 'group' && groupId === item.id && 'bg-wash',
                                 )}
                             >
-                                <span className="flex h-10 w-10 items-center justify-center rounded-full border border-line text-xs font-semibold">
-                                    {item.name.slice(0, 1)}
+                                <span className="relative">
+                                    <span className="flex h-10 w-10 items-center justify-center rounded-full border border-line text-xs font-semibold">
+                                        {item.name.slice(0, 1)}
+                                    </span>
+                                    {unread > 0 && (
+                                        <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-heart px-1 text-[10px] font-semibold leading-none text-white">
+                                            {unread}
+                                        </span>
+                                    )}
                                 </span>
                                 <span className="hidden min-w-0 sm:block">
                                     <span className="block truncate text-sm font-semibold">{item.name}</span>
@@ -208,12 +208,16 @@ export default function Index() {
                                     </span>
                                 </span>
                             </button>
-                        ))}
+                            );
+                        })}
 
                         <p className="hidden px-3 pt-4 pb-1 text-[11px] font-semibold tracking-wide text-muted uppercase sm:block">
                             Direct
                         </p>
-                        {people.map((user) => (
+                        {people.map((user) => {
+                            const unread = unreadWith(user.id);
+
+                            return (
                             <button
                                 key={user.id}
                                 type="button"
@@ -223,29 +227,27 @@ export default function Index() {
                                     channel === 'dm' && peerId === user.id && 'bg-wash',
                                 )}
                             >
-                                <Avatar src={user.avatar} name={user.name} size="md" />
+                                <span className="relative">
+                                    <Avatar src={user.avatar} name={user.name} size="md" />
+                                    {unread > 0 && (
+                                        <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-heart px-1 text-[10px] font-semibold leading-none text-white">
+                                            {unread}
+                                        </span>
+                                    )}
+                                </span>
                                 <span className="hidden min-w-0 sm:block">
                                     <span className="block truncate text-sm font-semibold">{user.name}</span>
                                     <span className="block truncate text-xs text-muted">{user.title}</span>
                                 </span>
                             </button>
-                        ))}
+                            );
+                        })}
                     </div>
                 </aside>
 
                 <section className="flex min-h-0 min-w-0 flex-1 flex-col">
                     <header className="flex h-14 items-center gap-3 border-b border-line px-4">
-                        {channel === 'public' ? (
-                            <>
-                                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white">
-                                    <HashIcon size={14} />
-                                </span>
-                                <div>
-                                    <p className="text-sm font-semibold">Company</p>
-                                    <p className="text-xs text-muted">Public messages</p>
-                                </div>
-                            </>
-                        ) : channel === 'group' && group ? (
+                        {channel === 'group' && group ? (
                             <div>
                                 <p className="text-sm font-semibold">{group.name}</p>
                                 <p className="text-xs text-muted">
@@ -269,43 +271,9 @@ export default function Index() {
                     </header>
 
                     <div className="ig-scroll flex-1 space-y-4 overflow-y-auto px-4 py-5">
-                        {channel === 'public' &&
-                            publicMessages.map((post) => {
-                                const author = userById(post.authorId);
-
-                                if (!author) {
-                                    return null;
-                                }
-
-                                const mine = author.id === viewer.id;
-
-                                return (
-                                    <div
-                                        key={post.id}
-                                        className={cn('flex gap-2', mine ? 'justify-end' : 'justify-start')}
-                                    >
-                                        {!mine && <Avatar src={author.avatar} name={author.name} size="xs" />}
-                                        <div className={cn('max-w-[75%]', mine && 'text-right')}>
-                                            {!mine && (
-                                                <p className="mb-1 text-[11px] font-semibold text-muted">
-                                                    {author.name} · {timeAgo(post.createdAt)}
-                                                </p>
-                                            )}
-                                            <div
-                                                className={cn(
-                                                    'inline-block rounded-2xl px-3.5 py-2 text-left text-sm leading-relaxed',
-                                                    mine ? 'bg-black text-white' : 'bg-line-soft text-ink',
-                                                )}
-                                            >
-                                                {post.text}
-                                            </div>
-                                            {mine && (
-                                                <p className="mt-1 text-[11px] text-muted">{timeAgo(post.createdAt)}</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                        {!channel && (
+                            <p className="py-16 text-center text-sm text-muted">Pick a conversation from the left.</p>
+                        )}
 
                         {channel === 'dm' && !peerId && (
                             <p className="py-16 text-center text-sm text-muted">Pick a teammate from the left.</p>
@@ -384,41 +352,6 @@ export default function Index() {
                     </div>
 
                     <form onSubmit={submit} className="border-t border-line px-4 py-3">
-                        <div className="mb-3 flex flex-wrap items-center gap-3">
-                            <label className="flex items-center gap-2 text-xs font-semibold">
-                                <input
-                                    type="checkbox"
-                                    className="ig-switch"
-                                    checked={channel === 'dm'}
-                                    onChange={(event) => {
-                                        if (event.target.checked) {
-                                            setChannel('dm');
-                                            setGroupId(null);
-                                            if (!peerId && people[0]) {
-                                                setPeerId(people[0].id);
-                                            }
-                                        } else {
-                                            selectPublic();
-                                        }
-                                    }}
-                                />
-                                <span>{channel === 'dm' ? 'Private' : channel === 'group' ? 'Group' : 'Public'}</span>
-                            </label>
-                            {channel === 'dm' && (
-                                <select
-                                    value={peerId ?? ''}
-                                    onChange={(event) => setPeerId(event.target.value || null)}
-                                    className="h-8 rounded-lg border border-line bg-wash px-2 text-xs shadow-none focus:border-black focus:ring-black"
-                                >
-                                    <option value="">Select a person</option>
-                                    {others.map((user) => (
-                                        <option key={user.id} value={user.id}>
-                                            {user.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            )}
-                        </div>
                         <div className="flex items-end gap-2 rounded-full border border-line px-3 py-1.5">
                             <textarea
                                 value={text}
@@ -431,13 +364,11 @@ export default function Index() {
                                 }}
                                 rows={1}
                                 placeholder={
-                                    channel === 'public'
-                                        ? 'Message the company…'
-                                        : channel === 'group' && group
-                                          ? `Message ${group.name}…`
-                                          : peer
-                                            ? `Message ${peer.name}…`
-                                            : 'Select someone to message…'
+                                    channel === 'group' && group
+                                        ? `Message ${group.name}…`
+                                        : peer
+                                          ? `Message ${peer.name}…`
+                                          : 'Select a conversation…'
                                 }
                                 className="max-h-28 min-h-[36px] flex-1 border-0 bg-transparent py-2 text-sm shadow-none focus:outline-none focus:ring-0"
                             />

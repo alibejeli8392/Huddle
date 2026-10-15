@@ -1,24 +1,34 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Avatar from '@/Components/ui/Avatar';
 import Button from '@/Components/ui/Button';
 import Dialog from '@/Components/ui/Dialog';
-import { CommentIcon, HeartIcon, ShareIcon, ThumbsDownIcon } from '@/Components/ui/Icons';
+import { CommentIcon, HeartIcon, ShareIcon } from '@/Components/ui/Icons';
 import { useHuddle } from '@/context/HuddleContext';
 import { timeAgo } from '@/utils/time';
 
 export default function PostCard({ post }) {
-    const { userById, viewer, friendsOf, state, toggleLike, toggleDislike, addComment, sharePost } = useHuddle();
+    const { userById, viewer, friendsOf, state, toggleLike, addComment, sharePost } = useHuddle();
     const [pop, setPop] = useState(false);
     const [commentsOpen, setCommentsOpen] = useState(false);
     const [draft, setDraft] = useState('');
     const [shareOpen, setShareOpen] = useState(false);
-    const [sharedTo, setSharedTo] = useState('');
+    const [sharedWith, setSharedWith] = useState('');
     const author = userById(post.authorId);
     const liked = viewer ? post.likes.includes(viewer.id) : false;
-    const disliked = viewer ? post.dislikes.includes(viewer.id) : false;
     const comments = post.comments ?? [];
     const friends = viewer ? friendsOf(viewer.id) : [];
     const groups = state.groups ?? [];
+
+    useEffect(() => {
+        if (!sharedWith) {
+            return undefined;
+        }
+
+        const timer = window.setTimeout(() => setSharedWith(''), 2200);
+
+        return () => window.clearTimeout(timer);
+    }, [sharedWith]);
 
     if (!author) {
         return null;
@@ -38,7 +48,8 @@ export default function PostCard({ post }) {
 
     const sendShare = (destination, label) => {
         sharePost(post.id, destination);
-        setSharedTo(label);
+        setShareOpen(false);
+        setSharedWith(label);
     };
 
     return (
@@ -69,15 +80,6 @@ export default function PostCard({ post }) {
                 </button>
                 <button
                     type="button"
-                    aria-label={disliked ? 'Remove dislike' : 'Dislike'}
-                    onClick={() => toggleDislike(post.id)}
-                    className={`flex items-center gap-1 ${disliked ? 'text-ink' : 'text-muted'}`}
-                >
-                    <ThumbsDownIcon size={22} filled={disliked} />
-                    <span className="text-xs font-semibold">{post.dislikes.length}</span>
-                </button>
-                <button
-                    type="button"
                     onClick={() => setCommentsOpen((open) => !open)}
                     className="flex items-center gap-1 text-ink"
                 >
@@ -86,14 +88,11 @@ export default function PostCard({ post }) {
                 </button>
                 <button
                     type="button"
-                    aria-label="Share"
-                    onClick={() => {
-                        setSharedTo('');
-                        setShareOpen(true);
-                    }}
-                    className="flex items-center gap-1 text-ink"
+                    onClick={() => setShareOpen(true)}
+                    className="ml-auto flex items-center gap-1.5 text-ink"
                 >
                     <ShareIcon size={20} />
+                    <span className="text-xs font-semibold">Share</span>
                 </button>
             </div>
 
@@ -140,10 +139,7 @@ export default function PostCard({ post }) {
             )}
 
             <Dialog open={shareOpen} title="Share post" onClose={() => setShareOpen(false)}>
-                {sharedTo ? (
-                    <p className="text-sm">Sent to {sharedTo}.</p>
-                ) : (
-                    <div className="space-y-4">
+                <div className="space-y-4">
                         <section>
                             <h3 className="mb-2 text-xs font-semibold tracking-wide text-muted uppercase">Friends</h3>
                             {friends.length === 0 ? (
@@ -186,8 +182,18 @@ export default function PostCard({ post }) {
                             )}
                         </section>
                     </div>
-                )}
             </Dialog>
+            {sharedWith &&
+                typeof document !== 'undefined' &&
+                createPortal(
+                    <div
+                        role="status"
+                        className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 rounded-full bg-black px-4 py-2 text-sm text-white lg:bottom-8"
+                    >
+                        Shared with {sharedWith}
+                    </div>,
+                    document.body,
+                )}
         </article>
     );
 }

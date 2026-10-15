@@ -17,19 +17,20 @@ function normalize(seed) {
         posts: (seed.posts ?? []).map((post) => ({
             ...post,
             likes: post.likes ?? [],
-            dislikes: post.dislikes ?? [],
             comments: post.comments ?? [],
         })),
         messages: (seed.messages ?? []).map((message) => ({
             text: '',
             sharedPost: null,
             ...message,
+            unread: Boolean(message.unread),
         })),
         groups: seed.groups ?? [],
         groupMessages: (seed.groupMessages ?? []).map((message) => ({
             text: '',
             sharedPost: null,
             ...message,
+            unread: Boolean(message.unread),
         })),
     };
 }
@@ -138,6 +139,31 @@ export function HuddleProvider({ children }) {
         );
     }, [viewerUser, state.friendships]);
 
+    const unreadMessageCount = useMemo(() => {
+        if (!viewerUser) {
+            return 0;
+        }
+
+        const direct = state.messages.filter(
+            (message) => message.unread && message.toId === viewerUser.id,
+        ).length;
+
+        const memberGroupIds = new Set(
+            state.groups
+                .filter((group) => group.memberIds.includes(viewerUser.id))
+                .map((group) => group.id),
+        );
+
+        const grouped = state.groupMessages.filter(
+            (message) =>
+                message.unread &&
+                message.fromId !== viewerUser.id &&
+                memberGroupIds.has(message.groupId),
+        ).length;
+
+        return direct + grouped;
+    }, [viewerUser, state.messages, state.groupMessages, state.groups]);
+
     const outgoingRequests = useMemo(() => {
         if (!viewerUser) {
             return [];
@@ -177,7 +203,6 @@ export function HuddleProvider({ children }) {
                 text: text.trim(),
                 createdAt: Date.now(),
                 likes: [],
-                dislikes: [],
                 comments: [],
             };
 
@@ -208,37 +233,6 @@ export function HuddleProvider({ children }) {
                         likes: liked
                             ? post.likes.filter((id) => id !== viewerUser.id)
                             : [...post.likes, viewerUser.id],
-                        dislikes: liked
-                            ? post.dislikes
-                            : post.dislikes.filter((id) => id !== viewerUser.id),
-                    };
-                }),
-            }));
-        },
-        [commit, viewerUser],
-    );
-
-    const toggleDislike = useCallback(
-        (postId) => {
-            if (!viewerUser) {
-                return;
-            }
-
-            commit((prev) => ({
-                ...prev,
-                posts: prev.posts.map((post) => {
-                    if (post.id !== postId) {
-                        return post;
-                    }
-
-                    const disliked = post.dislikes.includes(viewerUser.id);
-
-                    return {
-                        ...post,
-                        dislikes: disliked
-                            ? post.dislikes.filter((id) => id !== viewerUser.id)
-                            : [...post.dislikes, viewerUser.id],
-                        likes: disliked ? post.likes : post.likes.filter((id) => id !== viewerUser.id),
                     };
                 }),
             }));
@@ -362,6 +356,68 @@ export function HuddleProvider({ children }) {
         [commit, viewerUser],
     );
 
+    const markDirectRead = useCallback(
+        (peerId) => {
+            if (!viewerUser || !peerId) {
+                return;
+            }
+
+            commit((prev) => {
+                let changed = false;
+
+                const messages = prev.messages.map((message) => {
+                    if (message.unread && message.fromId === peerId && message.toId === viewerUser.id) {
+                        changed = true;
+
+                        return { ...message, unread: false };
+                    }
+
+                    return message;
+                });
+
+                if (!changed) {
+                    return prev;
+                }
+
+                return { ...prev, messages };
+            });
+        },
+        [commit, viewerUser],
+    );
+
+    const markGroupRead = useCallback(
+        (groupId) => {
+            if (!viewerUser || !groupId) {
+                return;
+            }
+
+            commit((prev) => {
+                let changed = false;
+
+                const groupMessages = prev.groupMessages.map((message) => {
+                    if (
+                        message.unread &&
+                        message.groupId === groupId &&
+                        message.fromId !== viewerUser.id
+                    ) {
+                        changed = true;
+
+                        return { ...message, unread: false };
+                    }
+
+                    return message;
+                });
+
+                if (!changed) {
+                    return prev;
+                }
+
+                return { ...prev, groupMessages };
+            });
+        },
+        [commit, viewerUser],
+    );
+
     const sendPrivateMessage = useCallback(
         (toId, text) => {
             if (!viewerUser) {
@@ -374,6 +430,7 @@ export function HuddleProvider({ children }) {
                 toId,
                 text: text.trim(),
                 sharedPost: null,
+                unread: false,
                 createdAt: Date.now(),
             };
 
@@ -419,6 +476,7 @@ export function HuddleProvider({ children }) {
                 fromId: viewerUser.id,
                 text: body,
                 sharedPost: null,
+                unread: false,
                 createdAt: Date.now(),
             };
 
@@ -460,6 +518,7 @@ export function HuddleProvider({ children }) {
                                 toId: destination.id,
                                 text: '',
                                 sharedPost,
+                                unread: false,
                                 createdAt: Date.now(),
                             },
                         ],
@@ -476,6 +535,7 @@ export function HuddleProvider({ children }) {
                             fromId: viewerUser.id,
                             text: '',
                             sharedPost,
+                            unread: false,
                             createdAt: Date.now(),
                         },
                     ],
@@ -511,10 +571,12 @@ export function HuddleProvider({ children }) {
             friendsOf,
             incomingRequests,
             outgoingRequests,
+            unreadMessageCount,
+            markDirectRead,
+            markGroupRead,
             updateProfile,
             addPost,
             toggleLike,
-            toggleDislike,
             addComment,
             sendFriendRequest,
             acceptRequest,
@@ -534,10 +596,12 @@ export function HuddleProvider({ children }) {
             friendsOf,
             incomingRequests,
             outgoingRequests,
+            unreadMessageCount,
+            markDirectRead,
+            markGroupRead,
             updateProfile,
             addPost,
             toggleLike,
-            toggleDislike,
             addComment,
             sendFriendRequest,
             acceptRequest,

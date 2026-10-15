@@ -1,5 +1,5 @@
-// New design shell for Home, Members, Friends, Messages, and Profile (/me).
-// Account settings (/profile) still use AuthenticatedLayout. Both stay until that Breeze screen is restyled.
+// Shell for every signed-in screen: Home, People, Friends, Messages, and Profile.
+// Profile includes the account settings tab. Guest auth screens still use GuestLayout.
 import { usePage } from '@inertiajs/react';
 import Navbar from '@/Components/social/Navbar';
 import { HuddleProvider } from '@/context/HuddleContext';

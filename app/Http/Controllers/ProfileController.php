@@ -15,23 +15,26 @@ use Inertia\Response;
 class ProfileController extends Controller
 {
     /**
-     * Display the member profile from the design (photo, title, bio).
-     * Account email, password, and deletion stay on edit().
+     * Display the profile page. The design profile and account settings are tabs on this screen.
      */
     public function show(Request $request): Response
     {
-        return Inertia::render('Profile/Show', PreviewData::forUser($request->user()));
-    }
+        $tab = $request->query('tab') === 'account' ? 'account' : 'profile';
 
-    /**
-     * Display the user's profile form.
-     */
-    public function edit(Request $request): Response
-    {
-        return Inertia::render('Profile/Edit', [
+        return Inertia::render('Profile/Show', [
+            ...PreviewData::forUser($request->user()),
+            'tab' => $tab,
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
         ]);
+    }
+
+    /**
+     * Send the old account URL to the account tab on the profile page.
+     */
+    public function edit(): RedirectResponse
+    {
+        return Redirect::route('profile.show', ['tab' => 'account']);
     }
 
     /**
@@ -47,7 +50,7 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return Redirect::route('profile.edit');
+        return Redirect::route('profile.show', ['tab' => 'account']);
     }
 
     /**

@@ -44,10 +44,6 @@ class PreviewData
                 fn (string $id): string => self::swap($id, $viewerId),
                 $post['likes'] ?? [],
             );
-            $post['dislikes'] = array_map(
-                fn (string $id): string => self::swap($id, $viewerId),
-                $post['dislikes'] ?? [],
-            );
             $post['comments'] = array_map(function (array $comment) use ($viewerId): array {
                 $comment['authorId'] = self::swap($comment['authorId'], $viewerId);
 
@@ -277,7 +273,6 @@ class PreviewData
                 'text' => 'Welcome to anyone starting this week — there are notebooks and a plant on your desk, and bagels in the kitchen until 11. Come say hi.',
                 'createdAt' => self::ago(1.2),
                 'likes' => ['u1', 'u2', 'u4', 'u7'],
-                'dislikes' => ['u9'],
                 'comments' => [
                     ['id' => 'c1', 'authorId' => 'u2', 'text' => 'Bagels noted. I\'ll be the one hovering by the kitchen.', 'createdAt' => self::ago(1)],
                     ['id' => 'c2', 'authorId' => 'u5', 'text' => 'Which desk has the plant? Asking for a friend who is me.', 'createdAt' => self::ago(0.8)],
@@ -289,7 +284,6 @@ class PreviewData
                 'text' => 'Deploy window is 4–4:30 today. If you have a PR you need in, ping me before 3. Otherwise we\'ll catch it in the morning train.',
                 'createdAt' => self::ago(2.4),
                 'likes' => ['u5', 'u1'],
-                'dislikes' => ['u8', 'u11'],
                 'comments' => [
                     ['id' => 'c3', 'authorId' => 'u1', 'text' => 'Mine is in. It\'s the empty-state copy, nothing risky.', 'createdAt' => self::ago(2.1)],
                 ],
@@ -300,7 +294,6 @@ class PreviewData
                 'text' => 'The new homepage copy is live. If you see anything that feels off-brand (or just off), drop a note. I have thick skin and a red pen.',
                 'createdAt' => self::ago(5),
                 'likes' => ['u1', 'u12', 'u10'],
-                'dislikes' => [],
                 'comments' => [],
             ],
             [
@@ -309,7 +302,6 @@ class PreviewData
                 'text' => 'Customer shoutout: Horizon Labs said onboarding felt “unusually human.” That\'s all of you. I sent the quote to the #wins channel.',
                 'createdAt' => self::ago(8),
                 'likes' => ['u1', 'u2', 'u3', 'u10', 'u6'],
-                'dislikes' => ['u9'],
                 'comments' => [
                     ['id' => 'c4', 'authorId' => 'u4', 'text' => 'That line is going on the wall. With permission.', 'createdAt' => self::ago(7)],
                 ],
@@ -320,7 +312,6 @@ class PreviewData
                 'text' => 'Desk critique hour tomorrow at 10, 4th floor nook. Bring work that\'s 60% done — the messy stuff is more useful than the polished stuff.',
                 'createdAt' => self::ago(14),
                 'likes' => ['u12', 'u4', 'u5'],
-                'dislikes' => ['u6'],
                 'comments' => [],
             ],
             [
@@ -329,7 +320,6 @@ class PreviewData
                 'text' => 'Quick look at last week\'s activation: up 9% after the checklist change. I\'ll share the full cut in Friday\'s review. Nice work, design + eng.',
                 'createdAt' => self::ago(22),
                 'likes' => ['u2', 'u1'],
-                'dislikes' => ['u8'],
                 'comments' => [
                     ['id' => 'c5', 'authorId' => 'u2', 'text' => 'Send the chart before Friday if you can. I want it in the review doc.', 'createdAt' => self::ago(20)],
                 ],
@@ -340,7 +330,6 @@ class PreviewData
                 'text' => 'Anyone in Chicago next Tuesday? I have a gap between meetings and would love a teammate to grab lunch with a prospect.',
                 'createdAt' => self::ago(28),
                 'likes' => ['u7'],
-                'dislikes' => [],
                 'comments' => [],
             ],
             [
@@ -349,7 +338,6 @@ class PreviewData
                 'text' => 'The 3rd floor espresso machine has been revived. You\'re welcome. Please do not attempt repairs yourselves. I have a log.',
                 'createdAt' => self::ago(36),
                 'likes' => ['u1', 'u2', 'u3', 'u4', 'u5', 'u8'],
-                'dislikes' => ['u6', 'u9'],
                 'comments' => [
                     ['id' => 'c6', 'authorId' => 'u1', 'text' => 'I owe you a coffee. The previous machine had opinions.', 'createdAt' => self::ago(30)],
                 ],
@@ -360,7 +348,6 @@ class PreviewData
                 'text' => 'Five interviews in, a pattern: people get stuck naming a project on create. I\'ll write up findings Thursday. If you\'ve seen this too, tell me.',
                 'createdAt' => self::ago(48),
                 'likes' => ['u1', 'u5'],
-                'dislikes' => [],
                 'comments' => [],
             ],
             [
@@ -369,7 +356,6 @@ class PreviewData
                 'text' => 'Expense reminder: Q1 close is Friday. If a receipt is living in your camera roll, now\'s the moment. I believe in you.',
                 'createdAt' => self::ago(52),
                 'likes' => ['u9'],
-                'dislikes' => ['u2', 'u10'],
                 'comments' => [
                     ['id' => 'c7', 'authorId' => 'u9', 'text' => 'Please don\'t make me hunt through Slack for the receipt policy again.', 'createdAt' => self::ago(50)],
                 ],
@@ -380,7 +366,6 @@ class PreviewData
                 'text' => 'Shipped the search empty state. It now says what to type instead of staring back. Small thing, but it was rude before.',
                 'createdAt' => self::ago(3.4),
                 'likes' => ['u1', 'u2', 'u12'],
-                'dislikes' => ['u6'],
                 'comments' => [
                     ['id' => 'c8', 'authorId' => 'u12', 'text' => 'That matches what people said in interviews. Nice.', 'createdAt' => self::ago(3)],
                 ],
@@ -391,7 +376,6 @@ class PreviewData
                 'text' => 'If a customer says "it\'s just slow," ask which screen. I have three different slows and only one of them is ours.',
                 'createdAt' => self::ago(6.5),
                 'likes' => ['u2', 'u7', 'u1'],
-                'dislikes' => [],
                 'comments' => [],
             ],
             [
@@ -400,7 +384,6 @@ class PreviewData
                 'text' => 'Two engineers are visiting Thursday. If you have a project you\'re proud of, I would love a 10-minute tour, not a slide deck.',
                 'createdAt' => self::ago(11),
                 'likes' => ['u3', 'u1', 'u5', 'u15'],
-                'dislikes' => ['u8'],
                 'comments' => [
                     ['id' => 'c9', 'authorId' => 'u3', 'text' => 'I can do the tour. No slides, I promise.', 'createdAt' => self::ago(10)],
                 ],
@@ -411,7 +394,6 @@ class PreviewData
                 'text' => 'The 4th floor nook is reserved 10–11 tomorrow for the critique. I moved the extra chairs. Please don\'t steal them back.',
                 'createdAt' => self::ago(16),
                 'likes' => ['u1', 'u4'],
-                'dislikes' => [],
                 'comments' => [],
             ],
             [
@@ -420,7 +402,6 @@ class PreviewData
                 'text' => 'Reminder that the vendor agreement does not cover "we\'ll figure out data residency later." I have redlines. They are friendly redlines.',
                 'createdAt' => self::ago(26),
                 'likes' => ['u8', 'u2'],
-                'dislikes' => ['u10', 'u7'],
                 'comments' => [
                     ['id' => 'c10', 'authorId' => 'u10', 'text' => 'Sending you the latest draft after lunch. Please be gentle.', 'createdAt' => self::ago(24)],
                 ],
@@ -431,7 +412,6 @@ class PreviewData
                 'text' => 'Posted the critique notes in the design folder. Two screens still feel like a form from 2009. I marked them.',
                 'createdAt' => self::ago(33),
                 'likes' => ['u4', 'u12', 'u3'],
-                'dislikes' => [],
                 'comments' => [],
             ],
             [
@@ -440,7 +420,6 @@ class PreviewData
                 'text' => 'Retention dipped on day 3, not day 1. The welcome email is fine. The second task in the checklist is where people stall.',
                 'createdAt' => self::ago(40),
                 'likes' => ['u1', 'u2', 'u5', 'u14'],
-                'dislikes' => ['u11'],
                 'comments' => [
                     ['id' => 'c11', 'authorId' => 'u5', 'text' => 'I can shorten that step this week if design is free tomorrow.', 'createdAt' => self::ago(38)],
                 ],
@@ -451,7 +430,6 @@ class PreviewData
                 'text' => 'The launch post is drafted. I stole one sentence from Priya\'s research notes and one from Alex\'s critique. Credit is in the doc.',
                 'createdAt' => self::ago(60),
                 'likes' => ['u1', 'u12', 'u3', 'u10'],
-                'dislikes' => ['u9'],
                 'comments' => [],
             ],
         ];
@@ -496,6 +474,7 @@ class PreviewData
                 'toId' => 'u1',
                 'text' => 'Hey — can you glance at the empty state for search before I ship it?',
                 'createdAt' => self::ago(3.1),
+                'unread' => false,
             ],
             [
                 'id' => 'm2',
@@ -503,6 +482,7 @@ class PreviewData
                 'toId' => 'u2',
                 'text' => 'Yes. Send the build and I\'ll look after standup.',
                 'createdAt' => self::ago(3),
+                'unread' => false,
             ],
             [
                 'id' => 'm3',
@@ -510,6 +490,7 @@ class PreviewData
                 'toId' => 'u1',
                 'text' => 'Just dropped it in the PR. No rush if standup runs long.',
                 'createdAt' => self::ago(2.6),
+                'unread' => true,
             ],
             [
                 'id' => 'm4',
@@ -517,6 +498,7 @@ class PreviewData
                 'toId' => 'u1',
                 'text' => 'Would you be open to a 20-min chat with two new designers next week? Totally informal.',
                 'createdAt' => self::ago(6),
+                'unread' => false,
             ],
             [
                 'id' => 'm5',
@@ -524,6 +506,7 @@ class PreviewData
                 'toId' => 'u3',
                 'text' => 'Absolutely. Tuesday or Wednesday afternoon works best.',
                 'createdAt' => self::ago(5.5),
+                'unread' => false,
             ],
             [
                 'id' => 'm6',
@@ -531,6 +514,7 @@ class PreviewData
                 'toId' => 'u1',
                 'text' => 'Loved the critique notes. Mind if I pull two lines into the launch post?',
                 'createdAt' => self::ago(10),
+                'unread' => true,
             ],
             [
                 'id' => 'm7',
@@ -538,6 +522,7 @@ class PreviewData
                 'toId' => 'u1',
                 'text' => 'Empty state is up. The hint text is still a guess — tell me if it sounds like a manual.',
                 'createdAt' => self::ago(4),
+                'unread' => false,
             ],
             [
                 'id' => 'm8',
@@ -545,6 +530,7 @@ class PreviewData
                 'toId' => 'u5',
                 'text' => 'It sounds like a person. Ship it.',
                 'createdAt' => self::ago(3.6),
+                'unread' => false,
             ],
             [
                 'id' => 'm9',
@@ -552,6 +538,7 @@ class PreviewData
                 'toId' => 'u1',
                 'text' => 'Horizon wants to quote us again. Can I use your critique line about messy work?',
                 'createdAt' => self::ago(9),
+                'unread' => true,
             ],
             [
                 'id' => 'm10',
@@ -559,6 +546,7 @@ class PreviewData
                 'toId' => 'u1',
                 'text' => 'Thursday office hours are full, but I saved you the 2pm slot if the naming problem is still bothering you.',
                 'createdAt' => self::ago(15),
+                'unread' => false,
             ],
             [
                 'id' => 'm11',
@@ -566,6 +554,7 @@ class PreviewData
                 'toId' => 'u12',
                 'text' => '2pm is perfect. I\'ll bring the three worst project names we\'ve shipped.',
                 'createdAt' => self::ago(14),
+                'unread' => false,
             ],
         ];
     }
@@ -607,6 +596,7 @@ class PreviewData
                 'text' => 'Deploy is 4. If your PR is not green by 3, it waits.',
                 'createdAt' => self::ago(5),
                 'sharedPost' => null,
+                'unread' => false,
             ],
             [
                 'id' => 'gm2',
@@ -615,6 +605,7 @@ class PreviewData
                 'text' => 'Copy is locked except the headline. I can still change that one.',
                 'createdAt' => self::ago(4.5),
                 'sharedPost' => null,
+                'unread' => false,
             ],
             [
                 'id' => 'gm3',
@@ -623,6 +614,7 @@ class PreviewData
                 'text' => 'Empty state is in the release branch.',
                 'createdAt' => self::ago(4.2),
                 'sharedPost' => null,
+                'unread' => true,
             ],
             [
                 'id' => 'gm4',
@@ -631,6 +623,7 @@ class PreviewData
                 'text' => 'New folks start Monday. Notebooks are on the desks.',
                 'createdAt' => self::ago(8),
                 'sharedPost' => null,
+                'unread' => false,
             ],
             [
                 'id' => 'gm5',
@@ -639,6 +632,7 @@ class PreviewData
                 'text' => 'I\'ll walk them through a customer call, not a slide.',
                 'createdAt' => self::ago(7.4),
                 'sharedPost' => null,
+                'unread' => true,
             ],
             [
                 'id' => 'gm6',
@@ -647,6 +641,7 @@ class PreviewData
                 'text' => 'Thursday, not Friday — I fly out at 2. Noodles on 2nd?',
                 'createdAt' => self::ago(20),
                 'sharedPost' => null,
+                'unread' => false,
             ],
             [
                 'id' => 'gm7',
@@ -655,6 +650,7 @@ class PreviewData
                 'text' => 'I can hold the corner table if you tell me a time.',
                 'createdAt' => self::ago(19),
                 'sharedPost' => null,
+                'unread' => false,
             ],
         ];
     }

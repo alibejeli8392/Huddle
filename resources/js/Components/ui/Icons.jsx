@@ -108,15 +108,6 @@ export function MoreIcon(props) {
     );
 }
 
-export function ThumbsDownIcon({ filled = false, ...props }) {
-    return (
-        <Base {...props} fill={filled ? 'currentColor' : 'none'}>
-            <path d="M8 10V4h8.2a2 2 0 0 1 2 1.7l1.2 6.2a2 2 0 0 1-2 2.3H13l-.6 3.2a1.6 1.6 0 0 1-1.6 1.3 1.4 1.4 0 0 1-1.3-1.9L10.2 14H6.5A1.5 1.5 0 0 1 5 12.5V10.5A2 2 0 0 1 7 8.6" />
-            <path d="M8 4v10" />
-        </Base>
-    );
-}
-
 export function CommentIcon(props) {
     return (
         <Base {...props}>
@@ -128,9 +119,8 @@ export function CommentIcon(props) {
 export function ShareIcon(props) {
     return (
         <Base {...props}>
-            <path d="M12 3v12" />
-            <path d="m7.5 7.5 4.5-4.5 4.5 4.5" />
-            <path d="M5 12.5V19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-6.5" />
+            <path d="M14.5 6.5 19 11l-4.5 4.5" />
+            <path d="M18.5 11H10a5.5 5.5 0 0 0-5.5 5.5V19" />
         </Base>
     );
 }

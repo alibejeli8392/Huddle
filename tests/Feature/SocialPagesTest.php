@@ -50,4 +50,50 @@ class SocialPagesTest extends TestCase
                 );
         }
     }
+
+    public function test_preview_includes_pending_requests_and_unread_messages(): void
+    {
+        $user = User::factory()->create();
+        $viewerId = (string) $user->id;
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('friendships', fn ($friendships) => $friendships
+                    ->where('toId', $viewerId)
+                    ->where('status', 'pending')
+                    ->count() === 4)
+                ->where('messages', fn ($messages) => $messages
+                    ->where('unread', true)
+                    ->where('toId', $viewerId)
+                    ->count() === 3)
+                ->where('groupMessages', fn ($messages) => $messages
+                    ->where('unread', true)
+                    ->where('fromId', '!=', $viewerId)
+                    ->count() === 2)
+            );
+    }
+
+    public function test_preview_chat_messages_are_separate_from_feed_posts(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('messages.index'))
+            ->assertOk()
+            ->assertInertia(function (Assert $page) {
+                $page->component('Messages/Index');
+
+                $props = $page->toArray()['props'];
+                $postTexts = collect($props['posts'])->pluck('text');
+                $chatTexts = collect($props['messages'])->pluck('text')
+                    ->merge(collect($props['groupMessages'])->pluck('text'))
+                    ->filter();
+
+                $this->assertNotEmpty($postTexts->all());
+                $this->assertNotEmpty($chatTexts->all());
+                $this->assertSame([], $postTexts->intersect($chatTexts)->values()->all());
+            });
+    }
 }

@@ -2,7 +2,7 @@
 
 One Laravel app. The server and the screens live in the same repository. There is no separate API or SPA.
 
-**Last updated:** 2026-10-01
+**Last updated:** 2026-10-15
 
 ```
 Browser
@@ -68,10 +68,10 @@ The new black-and-white screens and the original Breeze screens both exist. They
 
 | | New design | Breeze UI |
 |---|---|---|
-| Layout | `Layouts/AppLayout.jsx` | `Layouts/AuthenticatedLayout.jsx` (account settings), `Layouts/GuestLayout.jsx` (older auth screens) |
+| Layout | `Layouts/AppLayout.jsx` | `Layouts/GuestLayout.jsx` (older auth screens). `AuthenticatedLayout.jsx` is the old Breeze shell and is no longer mounted. |
 | Logo | `Components/ui/Logo.jsx` (script wordmark) | `Components/breeze/ApplicationLogo.jsx` (Laravel mark) |
 | Buttons | `Components/ui/Button.jsx` | `Components/breeze/PrimaryButton.jsx`, `SecondaryButton.jsx`, `DangerButton.jsx` |
-| Used on | Home, Members, Friends, Messages, Profile (`/me`), Login, Register | `/profile` account forms, forgot/reset password, verify email, confirm password |
+| Used on | Home, People, Friends, Messages, Profile (`/me`, including account settings), Login, Register | Forgot/reset password, verify email, confirm password |
 
 Each of those files has a short comment at the top saying which system it belongs to.
 
@@ -91,11 +91,10 @@ Each of those files has a short comment at the top saying which system it belong
 | Screen | File | Route |
 |---|---|---|
 | Home (feed) | `Pages/Feed/Index.jsx` | `GET /` redirects here when signed in; the page itself is `GET /dashboard` |
-| Members | `Pages/Members/Index.jsx` | `GET /members` |
+| People | `Pages/Members/Index.jsx` | `GET /members` |
 | Friends | `Pages/Friends/Index.jsx` | `GET /friends` |
 | Messages | `Pages/Messages/Index.jsx` | `GET /messages` |
-| Profile | `Pages/Profile/Show.jsx` | `GET /me` |
-| Account settings | `Pages/Profile/Edit.jsx` | `GET /profile` |
+| Profile | `Pages/Profile/Show.jsx` | `GET /me` (tabs: Profile, Account settings). `GET /profile` redirects to `/me?tab=account`. |
 | Login / Register / password | `Pages/Auth/*.jsx` | `routes/auth.php` |
 
 Posts, friends, and messages on the social screens are still preview data from `PreviewData`. They are not database tables yet.

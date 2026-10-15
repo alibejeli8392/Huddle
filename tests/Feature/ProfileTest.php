@@ -4,21 +4,61 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_profile_page_is_displayed(): void
+    public function test_account_settings_route_redirects_to_the_account_tab(): void
     {
         $user = User::factory()->create();
 
-        $response = $this
-            ->actingAs($user)
-            ->get('/profile');
+        $this->actingAs($user)
+            ->get('/profile')
+            ->assertRedirect(route('profile.show', ['tab' => 'account']));
+    }
 
-        $response->assertOk();
+    public function test_profile_page_defaults_to_the_profile_tab(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get('/me')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Profile/Show')
+                ->where('tab', 'profile')
+                ->where('mustVerifyEmail', false)
+                ->where('status', null)
+            );
+    }
+
+    public function test_account_tab_query_selects_account_settings(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get('/me?tab=account')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Profile/Show')
+                ->where('tab', 'account')
+            );
+    }
+
+    public function test_unknown_profile_tab_falls_back_to_the_profile_tab(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get('/me?tab=nope')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Profile/Show')
+                ->where('tab', 'profile')
+            );
     }
 
     public function test_profile_information_can_be_updated(): void
@@ -34,7 +74,7 @@ class ProfileTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
+            ->assertRedirect(route('profile.show', ['tab' => 'account']));
 
         $user->refresh();
 
@@ -56,7 +96,7 @@ class ProfileTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
+            ->assertRedirect(route('profile.show', ['tab' => 'account']));
 
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
@@ -85,14 +125,14 @@ class ProfileTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->from('/profile')
+            ->from(route('profile.show', ['tab' => 'account']))
             ->delete('/profile', [
                 'password' => 'wrong-password',
             ]);
 
         $response
             ->assertSessionHasErrors('password')
-            ->assertRedirect('/profile');
+            ->assertRedirect(route('profile.show', ['tab' => 'account']));
 
         $this->assertNotNull($user->fresh());
     }

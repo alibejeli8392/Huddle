@@ -1,5 +1,5 @@
-// Breeze shell for account settings (/profile): email, password, delete account.
-// The social screens use AppLayout. This stays until that page moves onto the new design.
+// Original Breeze shell. Account settings now render inside AppLayout on /me.
+// Nothing mounts this layout. It stays so the Breeze nav pieces are still in the repo.
 import ApplicationLogo from '@/Components/breeze/ApplicationLogo';
 import Dropdown from '@/Components/breeze/Dropdown';
 import NavLink from '@/Components/breeze/NavLink';

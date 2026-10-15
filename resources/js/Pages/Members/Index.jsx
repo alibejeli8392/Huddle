@@ -31,11 +31,11 @@ export default function Index() {
 
     return (
         <>
-            <Head title="Members" />
+            <Head title="People" />
 
             <div className="mx-auto w-full max-w-[980px] px-4 py-6 lg:px-10 lg:py-10">
                 <header className="mb-8">
-                    <h1 className="text-xl font-semibold tracking-tight">Members</h1>
+                    <h1 className="text-xl font-semibold tracking-tight">People</h1>
                     <p className="mt-1 text-sm text-muted">
                         Everyone at the company. Find a teammate and say hello.
                     </p>
