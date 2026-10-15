@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import Avatar from '@/Components/ui/Avatar';
 import FriendButton from '@/Components/social/FriendButton';
 import AppLayout from '@/Layouts/AppLayout';
@@ -31,9 +31,13 @@ export default function Index({ incomingRequests = [], outgoingRequests = [], fr
                             {incomingRequests.map((user) => (
                                 <li key={user.id}>
                                     <div className="flex items-center gap-3 py-3">
-                                        <Avatar src={user.avatar} name={user.name} size="md" />
+                                        <Link href={route('members.show', user.id)}>
+                                            <Avatar src={user.avatar} name={user.name} size="md" />
+                                        </Link>
                                         <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-semibold">{user.name}</p>
+                                            <Link href={route('members.show', user.id)} className="block truncate text-sm font-semibold">
+                                                {user.name}
+                                            </Link>
                                             <p className="truncate text-xs text-muted">{user.title}</p>
                                         </div>
                                         <FriendButton user={user} />
@@ -55,9 +59,13 @@ export default function Index({ incomingRequests = [], outgoingRequests = [], fr
                                     key={user.id}
                                     className="flex items-center gap-3 rounded-xl border border-line px-3 py-3"
                                 >
-                                    <Avatar src={user.avatar} name={user.name} size="md" />
+                                    <Link href={route('members.show', user.id)}>
+                                        <Avatar src={user.avatar} name={user.name} size="md" />
+                                    </Link>
                                     <div className="min-w-0 flex-1">
-                                        <p className="truncate text-sm font-semibold">{user.name}</p>
+                                        <Link href={route('members.show', user.id)} className="block truncate text-sm font-semibold">
+                                            {user.name}
+                                        </Link>
                                         <p className="truncate text-xs text-muted">{user.title}</p>
                                     </div>
                                     <FriendButton user={user} />
@@ -75,9 +83,13 @@ export default function Index({ incomingRequests = [], outgoingRequests = [], fr
                         <ul className="divide-y divide-line border-t border-b border-line">
                             {outgoingRequests.map((user) => (
                                 <li key={user.id} className="flex items-center gap-3 py-3">
-                                    <Avatar src={user.avatar} name={user.name} size="md" />
+                                    <Link href={route('members.show', user.id)}>
+                                        <Avatar src={user.avatar} name={user.name} size="md" />
+                                    </Link>
                                     <div className="min-w-0 flex-1">
-                                        <p className="truncate text-sm font-semibold">{user.name}</p>
+                                        <Link href={route('members.show', user.id)} className="block truncate text-sm font-semibold">
+                                            {user.name}
+                                        </Link>
                                         <p className="truncate text-xs text-muted">{user.title}</p>
                                     </div>
                                     <FriendButton user={user} />

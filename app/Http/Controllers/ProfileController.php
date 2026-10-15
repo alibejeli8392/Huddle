@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Requests\StoreAvatarRequest;
+use App\Http\Requests\UpdateProfileDetailsRequest;
+use App\Models\User;
 use App\Support\PreviewData;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
@@ -26,7 +29,57 @@ class ProfileController extends Controller
             'tab' => $tab,
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'profile' => $this->profilePayload($request->user()),
         ]);
+    }
+
+    /**
+     * Update title, department, and bio. Name and email stay on account settings.
+     */
+    public function updateDetails(UpdateProfileDetailsRequest $request): RedirectResponse
+    {
+        $request->user()->update($request->safe()->only(['title', 'department', 'bio']));
+
+        return Redirect::route('profile.show')->with('status', 'profile-updated');
+    }
+
+    /**
+     * Store a new profile photo and drop the previous local file.
+     */
+    public function storeAvatar(StoreAvatarRequest $request): RedirectResponse
+    {
+        $path = $request->file('avatar')->store('avatars', 'public');
+
+        $request->user()->storeAvatar($path);
+
+        return Redirect::route('profile.show');
+    }
+
+    /**
+     * Remove the profile photo.
+     */
+    public function destroyAvatar(Request $request): RedirectResponse
+    {
+        $request->user()->clearAvatar();
+
+        return Redirect::route('profile.show');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function profilePayload(User $user): array
+    {
+        return [
+            'name' => $user->name,
+            'email' => $user->email,
+            'title' => $user->title ?? '',
+            'department' => $user->department ?? '',
+            'bio' => $user->bio ?? '',
+            'avatar' => $user->avatar_url,
+            'postCount' => $user->posts()->count(),
+            'friendCount' => $user->friends()->count(),
+        ];
     }
 
     /**

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import Avatar from '@/Components/ui/Avatar';
 import Button from '@/Components/ui/Button';
 import Dialog from '@/Components/ui/Dialog';
@@ -72,10 +72,14 @@ export default function PostCard({ post }) {
     return (
         <article className="border-b border-line py-4">
             <header className="flex items-center gap-3 px-1">
-                <Avatar src={author.avatar} name={author.name} size="sm" />
+                <Link href={route('members.show', author.id)}>
+                    <Avatar src={author.avatar} name={author.name} size="sm" />
+                </Link>
                 <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2">
-                        <span className="truncate text-sm font-semibold">{author.name}</span>
+                        <Link href={route('members.show', author.id)} className="truncate text-sm font-semibold">
+                            {author.name}
+                        </Link>
                         <span className="text-xs text-muted">{timeAgo(post.createdAt)}</span>
                     </div>
                     <p className="truncate text-xs text-muted">

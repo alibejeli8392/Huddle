@@ -94,10 +94,11 @@ Each of those files has a short comment at the top saying which system it belong
 | People | `Pages/Members/Index.jsx` | `GET /members` lists real users except you. `POST /friends/{user}` sends or accepts a request. |
 | Friends | `Pages/Friends/Index.jsx` | `GET /friends` lists real requests and friends. Accept, decline, cancel, and unfriend use `/friendships/{friendship}`. |
 | Messages | `Pages/Messages/Index.jsx` | `GET /messages` |
-| Profile | `Pages/Profile/Show.jsx` | `GET /me` (tabs: Profile, Account settings). `GET /profile` redirects to `/me?tab=account`. |
+| Profile | `Pages/Profile/Show.jsx` | `GET /me` loads the signed-in member from the database. `PATCH /me` saves title, department, and bio. `POST /me/avatar` and `DELETE /me/avatar` change the photo. Account name, email, password, and delete stay on `PATCH /profile`. |
+| Member | `Pages/Members/Show.jsx` | `GET /members/{user}` is a read-only profile. Your own id redirects to `/me`. |
 | Login / Register / password | `Pages/Auth/*.jsx` | `routes/auth.php` |
 
-Posts on Home come from the `posts`, `post_likes`, and `comments` tables. People and friends come from `users` and `friendships`. The Friends badge is the shared `friendRequestCount`. Messages, groups, and the profile preview still come from `PreviewData`.
+Posts on Home come from the `posts`, `post_likes`, and `comments` tables. People, friends, and profiles come from `users` and `friendships`. The Friends badge is the shared `friendRequestCount`. Messages, groups, and Share still come from `PreviewData`.
 
 ## Schema
 
@@ -132,6 +133,7 @@ Status and conversation type are string columns. The allowed values live in `App
 ```bash
 php artisan serve          # Laravel → http://localhost:8000
 npm run dev                # Vite → http://localhost:5173
+php artisan storage:link   # once, so uploaded photos in storage/app/public are visible at /storage
 ```
 
 MySQL must be running. In this local setup the root user has no password.

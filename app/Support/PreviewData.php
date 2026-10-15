@@ -35,6 +35,7 @@ class PreviewData
                 'id' => $viewerId,
                 'name' => $user->name,
                 'email' => $user->email,
+                'avatar' => $user->avatar_url,
             ];
         }, self::members());
 

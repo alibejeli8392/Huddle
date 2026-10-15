@@ -32,7 +32,6 @@ class SocialPagesTest extends TestCase
             'members.index' => 'Members/Index',
             'friends.index' => 'Friends/Index',
             'messages.index' => 'Messages/Index',
-            'profile.show' => 'Profile/Show',
         ];
 
         foreach ($pages as $name => $component) {
@@ -49,6 +48,18 @@ class SocialPagesTest extends TestCase
                     ->has('messages')
                 );
         }
+
+        $this->actingAs($user)
+            ->get(route('profile.show'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Profile/Show')
+                ->where('profile.email', $user->email)
+                ->where('profile.name', $user->name)
+                ->where('profile.postCount', 0)
+                ->where('profile.friendCount', 0)
+                ->has('messages')
+            );
     }
 
     public function test_preview_includes_pending_requests_and_unread_messages(): void

@@ -19,7 +19,15 @@ function initials(name) {
 }
 
 function imageSource(src) {
-    return typeof src === 'string' && src.startsWith('http') ? src : '';
+    if (typeof src !== 'string' || src === '') {
+        return '';
+    }
+
+    if (src.startsWith('http') || src.startsWith('/')) {
+        return src;
+    }
+
+    return '';
 }
 
 export default function Avatar({ src, name, size = 'md', className = '' }) {

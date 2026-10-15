@@ -6,6 +6,18 @@ A running record of what has been built. Add a new dated entry after each major 
 
 ---
 
+## 2026-10-15 — Profile is stored in the database
+
+The Profile tab and another member's page read the real user. Messages, groups, and Share still use preview data.
+
+- `/me` shows your name, email, title, department, bio, photo, post count, and friend count from the database.
+- Title, department, and bio save with `PATCH /me`. Name, email, password, and delete stay on Account settings.
+- A photo upload (jpg, png, or webp, up to 2 MB) is stored on the public disk. Replacing it deletes the previous local file. Remote avatar URLs are left alone. Remove photo clears the path.
+- `/members/{user}` shows that person's profile and posts. Opening your own id sends you to `/me`.
+- Run `php artisan storage:link` once so uploaded photos are reachable at `/storage`.
+
+---
+
 ## 2026-10-15 — People and Friends are stored in the database
 
 The directory and friend requests are real. Messages, groups, and the profile preview still come from `PreviewData`.

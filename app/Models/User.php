@@ -8,12 +8,14 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 
 #[Fillable(['name', 'email', 'password', 'title', 'department', 'bio', 'avatar_path'])]
 #[Hidden(['password', 'remember_token'])]
@@ -35,16 +37,34 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Photo address for the screen: a remote URL, or a file on the public disk.
+     */
+    protected function avatarUrl(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            $path = $this->avatar_path;
+
+            if (! is_string($path) || $path === '') {
+                return null;
+            }
+
+            if (str_starts_with($path, 'http')) {
+                return $path;
+            }
+
+            return Storage::disk('public')->url($path);
+        });
+    }
+
     public function toAuthorCard(): array
     {
-        $avatar = $this->avatar_path;
-
         return [
             'id' => $this->id,
             'name' => $this->name,
             'title' => $this->title,
             'department' => $this->department,
-            'avatar' => is_string($avatar) && str_starts_with($avatar, 'http') ? $avatar : null,
+            'avatar' => $this->avatar_url,
         ];
     }
 
@@ -229,6 +249,39 @@ class User extends Authenticatable
     }
 
     /**
+     * This member's posts, newest first, in the shape the feed cards use.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function feedItemsFor(User $viewer): array
+    {
+        return $this->posts()
+            ->with([
+                'user',
+                'comments' => fn ($query) => $query->oldest(),
+                'comments.user',
+            ])
+            ->withCount(['likers', 'comments'])
+            ->withExists([
+                'likers as liked' => fn ($query) => $query->whereKey($viewer->id),
+            ])
+            ->latest()
+            ->get()
+            ->map(fn (Post $post): array => $post->toFeedItem($viewer))
+            ->all();
+    }
+
+    /**
+     * How this member appears to someone else, including the friend button state.
+     *
+     * @return array<string, mixed>
+     */
+    public function presentMember(User $member): array
+    {
+        return $this->memberCard($member, $this->friendshipsByOtherUser()->get((int) $member->getKey()));
+    }
+
+    /**
      * @return Collection<int, Friendship>
      */
     private function friendshipsByOtherUser(): Collection
@@ -261,9 +314,37 @@ class User extends Authenticatable
 
         return [
             ...$member->toAuthorCard(),
+            'bio' => $member->bio,
             'relationship' => $relationship,
             'friendshipId' => $relationship === 'none' ? null : $friendship?->id,
         ];
+    }
+
+    public function clearAvatar(): void
+    {
+        $this->deleteStoredAvatar($this->avatar_path);
+        $this->avatar_path = null;
+        $this->save();
+    }
+
+    public function storeAvatar(string $path): void
+    {
+        $previous = $this->avatar_path;
+        $this->avatar_path = $path;
+        $this->save();
+
+        if ($previous !== $path) {
+            $this->deleteStoredAvatar($previous);
+        }
+    }
+
+    public function deleteStoredAvatar(?string $path): void
+    {
+        if (! is_string($path) || $path === '' || str_starts_with($path, 'http')) {
+            return;
+        }
+
+        Storage::disk('public')->delete($path);
     }
 
     public function isFriendWith(User $user): bool

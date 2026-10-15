@@ -10,6 +10,8 @@ MySQL should be running, with a `huddle` database (local root user, no password)
 composer install
 npm install
 php artisan migrate
+php artisan storage:link
+php artisan db:seed --class=DemoSeeder
 php artisan serve
 ```
 
