@@ -40,16 +40,16 @@ Named URLs from PHP are available in React through Ziggy (`route('dashboard')`).
 
 | Folder | What lives here | Why it is separate |
 |---|---|---|
-| `app/Models/` | Eloquent models. `User` only, so far. | One model per table. |
+| `app/Models/` | Eloquent models: `User`, `Post`, `Comment`, `Friendship`, `Conversation`, `Message`. | One model per table. `post_likes` and `conversation_user` are pivots, not models. |
 | `app/Http/Controllers/` | Page controllers (`FeedController`, `MemberController`, …) and Breeze auth controllers in `Auth/`. | One controller per screen or auth action. |
 | `app/Http/Controllers/Auth/` | Login, register, password reset, email verify. | Breeze owns this. Leave the logic alone when restyling screens. |
 | `app/Http/Requests/` | Form validation (`LoginRequest`, `ProfileUpdateRequest`). | Validation stays out of the controller. |
 | `app/Http/Middleware/` | `HandleInertiaRequests` shares the signed-in user with every page. | Shared props, not page-specific data. |
-| `app/Support/PreviewData.php` | Sample members, posts, friendships, and messages. | Stand-in until those tables exist. The signed-in user's name and email replace the placeholder viewer. |
+| `app/Support/PreviewData.php` | Sample members, posts, friendships, and messages. | Still what the screens render. The signed-in user's name and email replace the placeholder viewer. |
 | `routes/web.php` | App URLs: `/`, `/dashboard`, `/members`, `/friends`, `/messages`, `/me`, `/profile`. | Screens a member opens. |
 | `routes/auth.php` | Login, register, logout, password reset. | Breeze auth URLs. |
-| `database/migrations/` | Tables. Users, sessions, cache, and jobs so far. | Schema changes only. |
-| `database/factories/` | `UserFactory` for tests. | Test data. |
+| `database/migrations/` | Tables. Users, posts, likes, comments, friendships, conversations, and messages, plus sessions, cache, and jobs. | Schema changes only. |
+| `database/factories/` | Factories for users and the social models. | Test data. |
 | `resources/js/Pages/` | One Inertia screen per file. The path must match `Inertia::render('…')`. | A page is a route, not a reusable widget. |
 | `resources/js/Layouts/` | Chrome around a page. See the two systems below. | Nav and page frame, not the page body. |
 | `resources/js/Components/ui/` | New design primitives: `Button`, `Avatar`, `Icons`, `Logo`, `AuthFrame`. | Shared look, no feed or friends logic. |
@@ -97,7 +97,22 @@ Each of those files has a short comment at the top saying which system it belong
 | Profile | `Pages/Profile/Show.jsx` | `GET /me` (tabs: Profile, Account settings). `GET /profile` redirects to `/me?tab=account`. |
 | Login / Register / password | `Pages/Auth/*.jsx` | `routes/auth.php` |
 
-Posts, friends, and messages on the social screens are still preview data from `PreviewData`. They are not database tables yet.
+Posts, friends, and messages on the social screens are still preview data from `PreviewData`. The tables below are ready for a later step to save them.
+
+## Schema
+
+| Table | What it stores |
+|---|---|
+| `users` | Account, plus nullable `title`, `department`, `bio`, and `avatar_path`. |
+| `posts` | A member's post (`user_id`, `body`). |
+| `post_likes` | One like per member per post. |
+| `comments` | A comment on a post. |
+| `friendships` | One row per pair (`requester_id`, `addressee_id`) with status `pending`, `accepted`, or `declined`. |
+| `conversations` | A direct chat or a named group. `created_by` is cleared if that member deletes their account. |
+| `conversation_user` | Who is in a conversation, and when they last read it. |
+| `messages` | A message in a conversation. `shared_post_id` points at a post and becomes null if that post is deleted. |
+
+Status and conversation type are string columns. The allowed values live in `App\FriendshipStatus` and `App\ConversationType`. Deleting a user cascades to the rows they own.
 
 ## Where to put something new
 

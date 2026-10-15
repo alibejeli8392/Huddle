@@ -6,6 +6,16 @@ A running record of what has been built. Add a new dated entry after each major 
 
 ---
 
+## 2026-10-15 — Database tables for posts, friends, and messages
+
+Schema only. Screens still read `PreviewData`.
+
+- Users can store a title, department, bio, and avatar path.
+- Posts, likes, comments, friendships, conversations, membership, and messages are real tables. Status and conversation type are strings backed by PHP enums, so MySQL and the test database stay the same.
+- Deleting a user removes their posts, comments, likes, friendships, and messages. A conversation stays if its creator leaves, and a shared post can be deleted without deleting the message.
+
+---
+
 ## 2026-10-15 — Home posts drop dislike, composer sits tighter
 
 - Post cards no longer have a dislike button or count. Like still toggles on and off. Comment and Share stay.
