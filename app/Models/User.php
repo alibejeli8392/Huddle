@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 
 #[Fillable(['name', 'email', 'password', 'title', 'department', 'bio', 'avatar_path'])]
 #[Hidden(['password', 'remember_token'])]
@@ -122,6 +123,147 @@ class User extends Authenticatable
         return $this->belongsToMany(Conversation::class)
             ->withPivot('last_read_at')
             ->withTimestamps();
+    }
+
+    public function friendshipWith(User $other): ?Friendship
+    {
+        return Friendship::query()
+            ->where(function (Builder $query) use ($other): void {
+                $query->where('requester_id', $this->getKey())
+                    ->where('addressee_id', $other->getKey());
+            })
+            ->orWhere(function (Builder $query) use ($other): void {
+                $query->where('requester_id', $other->getKey())
+                    ->where('addressee_id', $this->getKey());
+            })
+            ->first();
+    }
+
+    /**
+     * Send a request, or accept one that is already waiting from this person.
+     */
+    public function requestFriendshipWith(User $other): Friendship
+    {
+        $existing = $this->friendshipWith($other);
+
+        if ($existing === null) {
+            return Friendship::query()->create([
+                'requester_id' => $this->getKey(),
+                'addressee_id' => $other->getKey(),
+                'status' => FriendshipStatus::Pending,
+            ]);
+        }
+
+        if ($existing->status === FriendshipStatus::Pending && (int) $existing->requester_id === (int) $other->getKey()) {
+            $existing->update(['status' => FriendshipStatus::Accepted]);
+
+            return $existing;
+        }
+
+        if ($existing->status === FriendshipStatus::Declined) {
+            $existing->update([
+                'requester_id' => $this->getKey(),
+                'addressee_id' => $other->getKey(),
+                'status' => FriendshipStatus::Pending,
+            ]);
+
+            return $existing->refresh();
+        }
+
+        return $existing;
+    }
+
+    /**
+     * Everyone except this member, with how they are connected.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function directoryCards(): array
+    {
+        $friendships = $this->friendshipsByOtherUser();
+
+        return static::query()
+            ->whereKeyNot($this->getKey())
+            ->orderBy('name')
+            ->get()
+            ->map(function (User $member) use ($friendships): array {
+                $friendship = $friendships->get((int) $member->getKey());
+
+                return $this->memberCard($member, $friendship);
+            })
+            ->all();
+    }
+
+    /**
+     * @return array{
+     *     incomingRequests: array<int, array<string, mixed>>,
+     *     outgoingRequests: array<int, array<string, mixed>>,
+     *     friends: array<int, array<string, mixed>>
+     * }
+     */
+    public function friendLists(): array
+    {
+        $incoming = $this->incomingFriendRequests()->with('requester')->oldest()->get();
+        $outgoing = $this->outgoingFriendRequests()->with('addressee')->oldest()->get();
+        $accepted = Friendship::query()
+            ->with(['requester', 'addressee'])
+            ->where('status', FriendshipStatus::Accepted)
+            ->where(function (Builder $query): void {
+                $query->where('requester_id', $this->getKey())
+                    ->orWhere('addressee_id', $this->getKey());
+            })
+            ->oldest()
+            ->get();
+
+        return [
+            'incomingRequests' => $incoming->map(fn (Friendship $friendship): array => $this->memberCard($friendship->requester, $friendship))->all(),
+            'outgoingRequests' => $outgoing->map(fn (Friendship $friendship): array => $this->memberCard($friendship->addressee, $friendship))->all(),
+            'friends' => $accepted->map(function (Friendship $friendship): array {
+                $other = (int) $friendship->requester_id === (int) $this->getKey()
+                    ? $friendship->addressee
+                    : $friendship->requester;
+
+                return $this->memberCard($other, $friendship);
+            })->all(),
+        ];
+    }
+
+    /**
+     * @return Collection<int, Friendship>
+     */
+    private function friendshipsByOtherUser(): Collection
+    {
+        return Friendship::query()
+            ->where('requester_id', $this->getKey())
+            ->orWhere('addressee_id', $this->getKey())
+            ->get()
+            ->keyBy(function (Friendship $friendship): int {
+                return (int) $friendship->requester_id === (int) $this->getKey()
+                    ? (int) $friendship->addressee_id
+                    : (int) $friendship->requester_id;
+            });
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function memberCard(User $member, ?Friendship $friendship): array
+    {
+        $relationship = 'none';
+
+        if ($friendship !== null && $friendship->status === FriendshipStatus::Accepted) {
+            $relationship = 'friends';
+        } elseif ($friendship !== null && $friendship->status === FriendshipStatus::Pending) {
+            $relationship = (int) $friendship->requester_id === (int) $this->getKey()
+                ? 'request_sent'
+                : 'request_received';
+        }
+
+        return [
+            ...$member->toAuthorCard(),
+            'relationship' => $relationship,
+            'friendshipId' => $relationship === 'none' ? null : $friendship?->id,
+        ];
     }
 
     public function isFriendWith(User $user): bool

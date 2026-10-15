@@ -1,45 +1,55 @@
 import Button from '@/Components/ui/Button';
-import { useHuddle } from '@/context/HuddleContext';
+import { router } from '@inertiajs/react';
 
-export default function FriendButton({ userId, size = 'sm', block = false }) {
-    const { relationship, sendFriendRequest, acceptRequest, declineRequest, cancelRequest } =
-        useHuddle();
-    const rel = relationship(userId);
+export default function FriendButton({ user, size = 'sm', block = false }) {
+    const post = (url) => router.post(url, {}, { preserveScroll: true });
+    const remove = (url) => router.delete(url, { preserveScroll: true });
 
-    if (rel === 'self') {
-        return null;
-    }
-
-    if (rel === 'none') {
+    if (user.relationship === 'none') {
         return (
-            <Button size={size} block={block} onClick={() => sendFriendRequest(userId)}>
+            <Button size={size} block={block} onClick={() => post(route('friends.store', user.id))}>
                 Add Friend
             </Button>
         );
     }
 
-    if (rel === 'outgoing') {
+    if (user.relationship === 'request_sent') {
         return (
-            <Button size={size} block={block} variant="secondary" onClick={() => cancelRequest(userId)}>
+            <Button
+                size={size}
+                block={block}
+                variant="secondary"
+                onClick={() => remove(route('friendships.destroy', user.friendshipId))}
+            >
                 Request Sent
             </Button>
         );
     }
 
-    if (rel === 'friends') {
+    if (user.relationship === 'friends') {
         return (
-            <Button size={size} block={block} variant="secondary" disabled>
-                Friends
+            <Button
+                size={size}
+                block={block}
+                variant="secondary"
+                onClick={() => remove(route('friendships.destroy', user.friendshipId))}
+            >
+                Unfriend
             </Button>
         );
     }
 
     return (
         <div className={block ? 'flex w-full gap-2' : 'flex gap-2'}>
-            <Button size={size} block={block} onClick={() => acceptRequest(userId)}>
+            <Button size={size} block={block} onClick={() => post(route('friendships.accept', user.friendshipId))}>
                 Accept
             </Button>
-            <Button size={size} block={block} variant="secondary" onClick={() => declineRequest(userId)}>
+            <Button
+                size={size}
+                block={block}
+                variant="secondary"
+                onClick={() => post(route('friendships.decline', user.friendshipId))}
+            >
                 Decline
             </Button>
         </div>

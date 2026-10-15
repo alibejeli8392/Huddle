@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import Avatar from '@/Components/ui/Avatar';
 import {
     CompassIcon,
@@ -73,8 +73,8 @@ function mobileItemClass(active) {
 }
 
 export default function Navbar() {
-    const { viewer, incomingRequests, unreadMessageCount } = useHuddle();
-    const requestCount = incomingRequests.length;
+    const { viewer, unreadMessageCount } = useHuddle();
+    const requestCount = usePage().props.friendRequestCount ?? 0;
     const profileHref = route('profile.show');
     const profileActive = route().current('profile.show');
 

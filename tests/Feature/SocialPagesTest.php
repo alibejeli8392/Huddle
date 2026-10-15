@@ -57,7 +57,7 @@ class SocialPagesTest extends TestCase
         $viewerId = (string) $user->id;
 
         $this->actingAs($user)
-            ->get(route('dashboard'))
+            ->get(route('messages.index'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('friendships', fn ($friendships) => $friendships

@@ -1,32 +1,13 @@
 import { Head } from '@inertiajs/react';
 import Avatar from '@/Components/ui/Avatar';
-import Button from '@/Components/ui/Button';
 import FriendButton from '@/Components/social/FriendButton';
 import AppLayout from '@/Layouts/AppLayout';
-import { useHuddle } from '@/context/HuddleContext';
 
 function Empty({ children }) {
     return <p className="py-6 text-sm text-muted">{children}</p>;
 }
 
-export default function Index() {
-    const {
-        incomingRequests,
-        outgoingRequests,
-        viewer,
-        friendsOf,
-        userById,
-        acceptRequest,
-        declineRequest,
-        cancelRequest,
-    } = useHuddle();
-
-    if (!viewer) {
-        return null;
-    }
-
-    const friends = friendsOf(viewer.id);
-
+export default function Index({ incomingRequests = [], outgoingRequests = [], friends = [] }) {
     return (
         <>
             <Head title="Friends" />
@@ -47,35 +28,18 @@ export default function Index() {
                         <Empty>No pending requests.</Empty>
                     ) : (
                         <ul className="divide-y divide-line border-t border-b border-line">
-                            {incomingRequests.map((request) => {
-                                const user = userById(request.fromId);
-
-                                if (!user) {
-                                    return null;
-                                }
-
-                                return (
-                                    <li key={request.fromId}>
-                                        <div className="flex items-center gap-3 py-3">
-                                            <Avatar src={user.avatar} name={user.name} size="md" />
-                                            <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm font-semibold">{user.name}</p>
-                                                <p className="truncate text-xs text-muted">{user.title}</p>
-                                            </div>
-                                            <Button size="sm" onClick={() => acceptRequest(user.id)}>
-                                                Accept
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="secondary"
-                                                onClick={() => declineRequest(user.id)}
-                                            >
-                                                Decline
-                                            </Button>
+                            {incomingRequests.map((user) => (
+                                <li key={user.id}>
+                                    <div className="flex items-center gap-3 py-3">
+                                        <Avatar src={user.avatar} name={user.name} size="md" />
+                                        <div className="min-w-0 flex-1">
+                                            <p className="truncate text-sm font-semibold">{user.name}</p>
+                                            <p className="truncate text-xs text-muted">{user.title}</p>
                                         </div>
-                                    </li>
-                                );
-                            })}
+                                        <FriendButton user={user} />
+                                    </div>
+                                </li>
+                            ))}
                         </ul>
                     )}
                 </section>
@@ -96,7 +60,7 @@ export default function Index() {
                                         <p className="truncate text-sm font-semibold">{user.name}</p>
                                         <p className="truncate text-xs text-muted">{user.title}</p>
                                     </div>
-                                    <FriendButton userId={user.id} />
+                                    <FriendButton user={user} />
                                 </li>
                             ))}
                         </ul>
@@ -109,30 +73,16 @@ export default function Index() {
                         <Empty>No outgoing requests.</Empty>
                     ) : (
                         <ul className="divide-y divide-line border-t border-b border-line">
-                            {outgoingRequests.map((request) => {
-                                const user = userById(request.toId);
-
-                                if (!user) {
-                                    return null;
-                                }
-
-                                return (
-                                    <li key={request.toId} className="flex items-center gap-3 py-3">
-                                        <Avatar src={user.avatar} name={user.name} size="md" />
-                                        <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-semibold">{user.name}</p>
-                                            <p className="truncate text-xs text-muted">{user.title}</p>
-                                        </div>
-                                        <Button
-                                            size="sm"
-                                            variant="secondary"
-                                            onClick={() => cancelRequest(user.id)}
-                                        >
-                                            Request Sent
-                                        </Button>
-                                    </li>
-                                );
-                            })}
+                            {outgoingRequests.map((user) => (
+                                <li key={user.id} className="flex items-center gap-3 py-3">
+                                    <Avatar src={user.avatar} name={user.name} size="md" />
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate text-sm font-semibold">{user.name}</p>
+                                        <p className="truncate text-xs text-muted">{user.title}</p>
+                                    </div>
+                                    <FriendButton user={user} />
+                                </li>
+                            ))}
                         </ul>
                     )}
                 </section>

@@ -6,6 +6,17 @@ A running record of what has been built. Add a new dated entry after each major 
 
 ---
 
+## 2026-10-15 — People and Friends are stored in the database
+
+The directory and friend requests are real. Messages, groups, and the profile preview still come from `PreviewData`.
+
+- The guest account has 4 incoming requests, 1 outgoing request, and 3 friends. Running `DemoSeeder` again updates those rows instead of duplicating them.
+- People shows every other member and whether you are friends, waiting on them, or they are waiting on you. Search still filters name, title, and department in the browser.
+- Sending, accepting, declining, canceling, and unfriending go through the server. The Friends badge is the real incoming count on every page.
+- Share and the new-group picker still use the preview friend list, because those chats are keyed by the preview member ids.
+
+---
+
 ## 2026-10-15 — Home feed is stored in the database
 
 Posts, likes, and comments on Home are real. Members, friends, messages, groups, and the profile preview still come from `PreviewData`.

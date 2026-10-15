@@ -91,13 +91,13 @@ Each of those files has a short comment at the top saying which system it belong
 | Screen | File | Route |
 |---|---|---|
 | Home (feed) | `Pages/Feed/Index.jsx` | `GET /dashboard` loads posts, likes, and comments from the database. `POST /posts`, `POST /posts/{post}/like`, `POST /posts/{post}/comments`, `DELETE /posts/{post}`. |
-| People | `Pages/Members/Index.jsx` | `GET /members` |
-| Friends | `Pages/Friends/Index.jsx` | `GET /friends` |
+| People | `Pages/Members/Index.jsx` | `GET /members` lists real users except you. `POST /friends/{user}` sends or accepts a request. |
+| Friends | `Pages/Friends/Index.jsx` | `GET /friends` lists real requests and friends. Accept, decline, cancel, and unfriend use `/friendships/{friendship}`. |
 | Messages | `Pages/Messages/Index.jsx` | `GET /messages` |
 | Profile | `Pages/Profile/Show.jsx` | `GET /me` (tabs: Profile, Account settings). `GET /profile` redirects to `/me?tab=account`. |
 | Login / Register / password | `Pages/Auth/*.jsx` | `routes/auth.php` |
 
-Posts on Home come from the `posts`, `post_likes`, and `comments` tables. Friends, messages, groups, and the profile preview still come from `PreviewData`.
+Posts on Home come from the `posts`, `post_likes`, and `comments` tables. People and friends come from `users` and `friendships`. The Friends badge is the shared `friendRequestCount`. Messages, groups, and the profile preview still come from `PreviewData`.
 
 ## Schema
 

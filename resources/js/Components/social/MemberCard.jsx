@@ -25,7 +25,7 @@ export default function MemberCard({ user }) {
                         <p className="truncate text-[11px] text-muted">{user.title}</p>
                     </div>
                 </div>
-                <FriendButton userId={user.id} block />
+                <FriendButton user={user} block />
             </div>
         </article>
     );

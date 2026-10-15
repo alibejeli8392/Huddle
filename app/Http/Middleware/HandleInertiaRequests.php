@@ -34,6 +34,15 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'friendRequestCount' => function () use ($request): int {
+                $user = $request->user();
+
+                if ($user === null) {
+                    return 0;
+                }
+
+                return $user->incomingFriendRequests()->count();
+            },
         ];
     }
 }

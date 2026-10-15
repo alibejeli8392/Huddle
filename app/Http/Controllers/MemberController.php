@@ -9,8 +9,17 @@ use Inertia\Response;
 
 class MemberController extends Controller
 {
+    /**
+     * Everyone at the company except the signed-in member.
+     * Messages on this page are still preview data.
+     */
     public function index(Request $request): Response
     {
-        return Inertia::render('Members/Index', PreviewData::forUser($request->user()));
+        $user = $request->user();
+
+        return Inertia::render('Members/Index', [
+            ...PreviewData::forUser($user),
+            'directory' => $user->directoryCards(),
+        ]);
     }
 }

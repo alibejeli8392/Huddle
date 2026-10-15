@@ -3,6 +3,7 @@
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\FriendController;
+use App\Http\Controllers\FriendshipController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PostController;
@@ -24,7 +25,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('posts.comments.store');
     Route::get('/members', [MemberController::class, 'index'])->name('members.index');
+    Route::post('/friends/{user}', [FriendController::class, 'store'])->name('friends.store');
     Route::get('/friends', [FriendController::class, 'index'])->name('friends.index');
+    Route::post('/friendships/{friendship}/accept', [FriendshipController::class, 'accept'])->name('friendships.accept');
+    Route::post('/friendships/{friendship}/decline', [FriendshipController::class, 'decline'])->name('friendships.decline');
+    Route::delete('/friendships/{friendship}', [FriendshipController::class, 'destroy'])->name('friendships.destroy');
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::get('/me', [ProfileController::class, 'show'])->name('profile.show');
 });

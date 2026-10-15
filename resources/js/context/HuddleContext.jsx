@@ -67,39 +67,6 @@ export function HuddleProvider({ children }) {
         [state.members],
     );
 
-    const relationship = useCallback(
-        (userId) => {
-            if (!viewerUser) {
-                return 'none';
-            }
-
-            if (userId === viewerUser.id) {
-                return 'self';
-            }
-
-            const match = state.friendships.find(
-                (friendship) =>
-                    (friendship.fromId === viewerUser.id && friendship.toId === userId) ||
-                    (friendship.toId === viewerUser.id && friendship.fromId === userId),
-            );
-
-            if (!match) {
-                return 'none';
-            }
-
-            if (match.status === 'accepted') {
-                return 'friends';
-            }
-
-            if (match.fromId === viewerUser.id) {
-                return 'outgoing';
-            }
-
-            return 'incoming';
-        },
-        [viewerUser, state.friendships],
-    );
-
     const friendsOf = useCallback(
         (userId) => {
             const ids = new Set();
@@ -122,16 +89,6 @@ export function HuddleProvider({ children }) {
         },
         [state.friendships, state.members],
     );
-
-    const incomingRequests = useMemo(() => {
-        if (!viewerUser) {
-            return [];
-        }
-
-        return state.friendships.filter(
-            (friendship) => friendship.toId === viewerUser.id && friendship.status === 'pending',
-        );
-    }, [viewerUser, state.friendships]);
 
     const unreadMessageCount = useMemo(() => {
         if (!viewerUser) {
@@ -158,16 +115,6 @@ export function HuddleProvider({ children }) {
         return direct + grouped;
     }, [viewerUser, state.messages, state.groupMessages, state.groups]);
 
-    const outgoingRequests = useMemo(() => {
-        if (!viewerUser) {
-            return [];
-        }
-
-        return state.friendships.filter(
-            (friendship) => friendship.fromId === viewerUser.id && friendship.status === 'pending',
-        );
-    }, [viewerUser, state.friendships]);
-
     const updateProfile = useCallback(
         (patch) => {
             if (!viewerUser) {
@@ -179,97 +126,6 @@ export function HuddleProvider({ children }) {
                 viewer: { ...prev.viewer, ...patch },
                 members: prev.members.map((member) =>
                     member.id === prev.viewer.id ? { ...member, ...patch } : member,
-                ),
-            }));
-        },
-        [commit, viewerUser],
-    );
-
-    const sendFriendRequest = useCallback(
-        (userId) => {
-            if (!viewerUser || userId === viewerUser.id) {
-                return;
-            }
-
-            commit((prev) => {
-                const exists = prev.friendships.some(
-                    (friendship) =>
-                        (friendship.fromId === viewerUser.id && friendship.toId === userId) ||
-                        (friendship.toId === viewerUser.id && friendship.fromId === userId),
-                );
-
-                if (exists) {
-                    return prev;
-                }
-
-                return {
-                    ...prev,
-                    friendships: [
-                        ...prev.friendships,
-                        { fromId: viewerUser.id, toId: userId, status: 'pending' },
-                    ],
-                };
-            });
-        },
-        [commit, viewerUser],
-    );
-
-    const acceptRequest = useCallback(
-        (fromId) => {
-            if (!viewerUser) {
-                return;
-            }
-
-            commit((prev) => ({
-                ...prev,
-                friendships: prev.friendships.map((friendship) =>
-                    friendship.fromId === fromId &&
-                    friendship.toId === viewerUser.id &&
-                    friendship.status === 'pending'
-                        ? { ...friendship, status: 'accepted' }
-                        : friendship,
-                ),
-            }));
-        },
-        [commit, viewerUser],
-    );
-
-    const declineRequest = useCallback(
-        (fromId) => {
-            if (!viewerUser) {
-                return;
-            }
-
-            commit((prev) => ({
-                ...prev,
-                friendships: prev.friendships.filter(
-                    (friendship) =>
-                        !(
-                            friendship.fromId === fromId &&
-                            friendship.toId === viewerUser.id &&
-                            friendship.status === 'pending'
-                        ),
-                ),
-            }));
-        },
-        [commit, viewerUser],
-    );
-
-    const cancelRequest = useCallback(
-        (toId) => {
-            if (!viewerUser) {
-                return;
-            }
-
-            commit((prev) => ({
-                ...prev,
-                friendships: prev.friendships.filter(
-                    (friendship) =>
-                        !(
-                            friendship.fromId === viewerUser.id &&
-                            friendship.toId === toId &&
-                            friendship.status === 'pending'
-                        ),
                 ),
             }));
         },
@@ -480,18 +336,11 @@ export function HuddleProvider({ children }) {
             state,
             viewer: viewerUser,
             userById,
-            relationship,
             friendsOf,
-            incomingRequests,
-            outgoingRequests,
             unreadMessageCount,
             markDirectRead,
             markGroupRead,
             updateProfile,
-            sendFriendRequest,
-            acceptRequest,
-            declineRequest,
-            cancelRequest,
             sendPrivateMessage,
             threadWith,
             createGroup,
@@ -502,18 +351,11 @@ export function HuddleProvider({ children }) {
             state,
             viewerUser,
             userById,
-            relationship,
             friendsOf,
-            incomingRequests,
-            outgoingRequests,
             unreadMessageCount,
             markDirectRead,
             markGroupRead,
             updateProfile,
-            sendFriendRequest,
-            acceptRequest,
-            declineRequest,
-            cancelRequest,
             sendPrivateMessage,
             threadWith,
             createGroup,

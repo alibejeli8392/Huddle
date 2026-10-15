@@ -3,31 +3,25 @@ import { Head } from '@inertiajs/react';
 import { SearchIcon } from '@/Components/ui/Icons';
 import MemberCard from '@/Components/social/MemberCard';
 import AppLayout from '@/Layouts/AppLayout';
-import { useHuddle } from '@/context/HuddleContext';
 
-export default function Index() {
-    const { state, viewer } = useHuddle();
+export default function Index({ directory = [] }) {
     const [query, setQuery] = useState('');
 
     const members = useMemo(() => {
         const q = query.trim().toLowerCase();
 
-        return state.members.filter((member) => {
-            if (viewer && member.id === viewer.id) {
-                return false;
-            }
+        if (!q) {
+            return directory;
+        }
 
-            if (!q) {
-                return true;
-            }
-
+        return directory.filter((member) => {
             return (
                 member.name.toLowerCase().includes(q) ||
-                member.title.toLowerCase().includes(q) ||
-                member.department.toLowerCase().includes(q)
+                (member.title ?? '').toLowerCase().includes(q) ||
+                (member.department ?? '').toLowerCase().includes(q)
             );
         });
-    }, [state.members, viewer, query]);
+    }, [directory, query]);
 
     return (
         <>
