@@ -4,11 +4,10 @@ import Avatar from '@/Components/ui/Avatar';
 import Button from '@/Components/ui/Button';
 import PostCard from '@/Components/social/PostCard';
 import AppLayout from '@/Layouts/AppLayout';
-import { useHuddle } from '@/context/HuddleContext';
 
 export default function Index({ posts = [] }) {
-    const { viewer } = useHuddle();
-    const { errors } = usePage().props;
+    const { auth, errors } = usePage().props;
+    const viewer = auth?.user;
     const [text, setText] = useState('');
     const [posting, setPosting] = useState(false);
     const fieldRef = useRef(null);
@@ -54,7 +53,7 @@ export default function Index({ posts = [] }) {
             <div className="mx-auto w-full max-w-[630px] px-4 py-6 lg:py-10">
                 <form onSubmit={submit} className="mb-2 border-b border-line pb-5">
                     <div className="flex gap-3">
-                        <Avatar src={viewer.avatar} name={viewer.name} size="sm" />
+                        <Avatar src={viewer.avatar_url} name={viewer.name} size="sm" />
                         <div className="flex-1">
                             <textarea
                                 ref={fieldRef}

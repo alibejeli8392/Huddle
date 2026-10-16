@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Support\PreviewData;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,14 +12,12 @@ class MemberController extends Controller
 {
     /**
      * Everyone at the company except the signed-in member.
-     * Messages on this page are still preview data.
      */
     public function index(Request $request): Response
     {
         $user = $request->user();
 
         return Inertia::render('Members/Index', [
-            ...PreviewData::forUser($user),
             'directory' => $user->directoryCards(),
         ]);
     }
@@ -37,9 +34,9 @@ class MemberController extends Controller
         }
 
         return Inertia::render('Members/Show', [
-            ...PreviewData::forUser($viewer),
             'member' => $viewer->presentMember($user),
             'posts' => $user->feedItemsFor($viewer),
+            'shareTargets' => $viewer->shareTargets(),
         ]);
     }
 }

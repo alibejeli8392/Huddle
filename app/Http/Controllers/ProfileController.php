@@ -6,7 +6,6 @@ use App\Http\Requests\ProfileUpdateRequest;
 use App\Http\Requests\StoreAvatarRequest;
 use App\Http\Requests\UpdateProfileDetailsRequest;
 use App\Models\User;
-use App\Support\PreviewData;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,7 +24,6 @@ class ProfileController extends Controller
         $tab = $request->query('tab') === 'account' ? 'account' : 'profile';
 
         return Inertia::render('Profile/Show', [
-            ...PreviewData::forUser($request->user()),
             'tab' => $tab,
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),

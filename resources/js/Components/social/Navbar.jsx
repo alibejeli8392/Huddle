@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import Avatar from '@/Components/ui/Avatar';
 import {
+    ChecklistIcon,
     CompassIcon,
     HomeIcon,
     LogoutIcon,
@@ -8,7 +9,6 @@ import {
     PlaneIcon,
 } from '@/Components/ui/Icons';
 import Logo from '@/Components/ui/Logo';
-import { useHuddle } from '@/context/HuddleContext';
 import { cn } from '@/utils/cn';
 
 const links = [
@@ -16,19 +16,28 @@ const links = [
     { href: () => route('members.index'), label: 'People', icon: CompassIcon, name: 'members.index' },
     { href: () => route('friends.index'), label: 'Friends', icon: PeopleIcon, name: 'friends.index', badge: 'friends' },
     { href: () => route('messages.index'), label: 'Messages', icon: PlaneIcon, name: 'messages.index', badge: 'messages' },
+    { href: () => route('tasks.index'), label: 'Tasks', icon: ChecklistIcon, name: 'tasks.index', badge: 'tasks' },
 ];
 
 function isCurrent(name) {
+    if (name === 'messages.index') {
+        return route().current('messages.index') || route().current('messages.show');
+    }
+
     return route().current(name);
 }
 
-function badgeCount(kind, requestCount, unreadMessageCount) {
+function badgeCount(kind, requestCount, unreadMessageCount, incompleteTaskCount) {
     if (kind === 'friends') {
         return requestCount;
     }
 
     if (kind === 'messages') {
         return unreadMessageCount;
+    }
+
+    if (kind === 'tasks') {
+        return incompleteTaskCount;
     }
 
     return 0;
@@ -41,6 +50,10 @@ function accessibleName(label, count, kind) {
 
     if (kind === 'friends') {
         return `${label}, ${count} pending ${count === 1 ? 'request' : 'requests'}`;
+    }
+
+    if (kind === 'tasks') {
+        return `${label}, ${count} incomplete ${count === 1 ? 'task' : 'tasks'}`;
     }
 
     return `${label}, ${count} unread ${count === 1 ? 'message' : 'messages'}`;
@@ -67,14 +80,15 @@ function desktopItemClass(active) {
 
 function mobileItemClass(active) {
     return cn(
-        'relative flex h-full min-w-0 flex-1 flex-col items-center justify-center gap-1 text-[11px] leading-none',
+        'relative flex h-full min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 text-[10px] leading-none',
         active ? 'font-semibold text-ink' : 'font-normal text-muted',
     );
 }
 
 export default function Navbar() {
-    const { viewer, unreadMessageCount } = useHuddle();
-    const requestCount = usePage().props.friendRequestCount ?? 0;
+    const { auth, friendRequestCount = 0, unreadMessageCount = 0, incompleteTaskCount = 0 } = usePage().props;
+    const viewer = auth?.user;
+    const requestCount = friendRequestCount;
     const profileHref = route('profile.show');
     const profileActive = route().current('profile.show');
 
@@ -88,7 +102,7 @@ export default function Navbar() {
                     {links.map((link) => {
                         const active = isCurrent(link.name);
                         const Icon = link.icon;
-                        const count = badgeCount(link.badge, requestCount, unreadMessageCount);
+                        const count = badgeCount(link.badge, requestCount, unreadMessageCount, incompleteTaskCount);
 
                         return (
                             <Link
@@ -114,7 +128,7 @@ export default function Navbar() {
                         className={desktopItemClass(profileActive)}
                     >
                         <Avatar
-                            src={viewer?.avatar}
+                            src={viewer?.avatar_url}
                             name={viewer?.name ?? 'You'}
                             size="xs"
                             className={profileActive ? 'ring-2 ring-white' : ''}
@@ -155,7 +169,7 @@ export default function Navbar() {
                 {links.map((link) => {
                     const active = isCurrent(link.name);
                     const Icon = link.icon;
-                    const count = badgeCount(link.badge, requestCount, unreadMessageCount);
+                    const count = badgeCount(link.badge, requestCount, unreadMessageCount, incompleteTaskCount);
 
                     return (
                         <Link
@@ -167,7 +181,7 @@ export default function Navbar() {
                         >
                             {active && <span className="absolute top-0 left-1/2 h-0.5 w-8 -translate-x-1/2 bg-black" />}
                             <span className="relative">
-                                <Icon size={22} strokeWidth={active ? 2.2 : 1.7} />
+                                <Icon size={20} strokeWidth={active ? 2.2 : 1.7} />
                                 <CountBadge count={count} />
                             </span>
                             <span className="max-w-full truncate">{link.label}</span>
@@ -181,7 +195,7 @@ export default function Navbar() {
                 >
                     {profileActive && <span className="absolute top-0 left-1/2 h-0.5 w-8 -translate-x-1/2 bg-black" />}
                     <Avatar
-                        src={viewer?.avatar}
+                        src={viewer?.avatar_url}
                         name={viewer?.name ?? 'You'}
                         size="xs"
                         className={profileActive ? 'ring-2 ring-black ring-offset-1' : ''}

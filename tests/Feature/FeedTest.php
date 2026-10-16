@@ -54,8 +54,8 @@ class FeedTest extends TestCase
                 ->where('posts.0.author.name', 'Sam Okonkwo')
                 ->where('posts.1.text', 'Older note')
                 ->where('posts.1.id', $older->id)
-                ->has('friendships')
-                ->has('messages')
+                ->has('shareTargets.friends')
+                ->has('shareTargets.groups')
             );
     }
 

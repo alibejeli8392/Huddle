@@ -6,6 +6,30 @@ A running record of what has been built. Add a new dated entry after each major 
 
 ---
 
+## 2026-10-16 — Daily department tasks
+
+Members see today's work for their department. Managers create and delete those tasks. No recurring tasks, no per-person assignment, and no comments on tasks.
+
+- `users.role` is `employee` or `manager` (default employee). `guest@huddle.app` stays an employee in Design. `manager@huddle.app` is seeded as a Design manager via `ManagerUserSeeder` (also called from `DatabaseSeeder` and `DemoSeeder`).
+- `tasks` and `task_completions` store department work and who marked a task done. Completion is per person; one member's Done does not mark it done for everyone.
+- `GET /tasks` shows today's list for employees (with a Done toggle and "X of Y done" for their own list) and a create form plus today/upcoming lists for managers (with department progress and delete).
+- Employees cannot create or delete tasks (403). Managers only manage their own department. `APP_TIMEZONE=America/Los_Angeles` so "today" matches local time.
+- Login has demo-only "Continue as Manager" (`POST /manager-login` → `/tasks`). The Tasks nav item badges incomplete today tasks for employees only.
+- `DemoSeeder` adds about six Design tasks for today (two already done by the guest), a few for tomorrow, and a couple in Engineering.
+
+---
+
+## 2026-10-16 — Messages, groups, and Share are stored in the database
+
+This was the last preview piece. Chats, unread counts, and sharing a post are saved.
+
+- `guest@huddle.app` has 3 direct conversations with accepted friends and 3 group chats (3–5 members, each started by someone else). A few threads are still unread, so the Messages badge has a count. Running `DemoSeeder` again updates those rows.
+- Opening a conversation marks it read for you. Only members can view or send. A direct chat or a new group is limited to accepted friends.
+- Share copies the post into a conversation you belong to, or opens a direct chat with a friend. Home and another member's profile pass the real friend and group lists to the share dialog.
+- The unread badge is the shared `unreadMessageCount`. Sample members and posts for the seeder live in `database/seeders/DemoData.php`.
+
+---
+
 ## 2026-10-15 — Profile is stored in the database
 
 The Profile tab and another member's page read the real user. Messages, groups, and Share still use preview data.

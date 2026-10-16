@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SharePostRequest;
 use App\Http\Requests\StorePostRequest;
 use App\Models\Post;
 use Illuminate\Http\RedirectResponse;
@@ -46,6 +47,16 @@ class PostController extends Controller
         Gate::authorize('delete', $post);
 
         $post->delete();
+
+        return back();
+    }
+
+    /**
+     * Copy a post into conversations the member belongs to, or into a friend's direct chat.
+     */
+    public function share(SharePostRequest $request, Post $post): RedirectResponse
+    {
+        $request->user()->sharePost($post, $request->validated('targets'));
 
         return back();
     }

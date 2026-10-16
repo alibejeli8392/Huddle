@@ -81,6 +81,15 @@ export function HeartIcon({ filled = false, ...props }) {
     );
 }
 
+export function PlusIcon(props) {
+    return (
+        <Base {...props}>
+            <path d="M12 5v14" />
+            <path d="M5 12h14" />
+        </Base>
+    );
+}
+
 export function SendIcon(props) {
     return (
         <Base {...props}>
@@ -132,6 +141,19 @@ export function HashIcon(props) {
             <path d="m17 4-2 16" />
             <path d="M5 9h14" />
             <path d="M4 15h14" />
+        </Base>
+    );
+}
+
+export function ChecklistIcon(props) {
+    return (
+        <Base {...props}>
+            <path d="M9 6h11" />
+            <path d="M9 12h11" />
+            <path d="M9 18h11" />
+            <path d="m4 6 1.2 1.2L7.5 5" />
+            <path d="m4 12 1.2 1.2L7.5 11" />
+            <path d="m4 18 1.2 1.2L7.5 17" />
         </Base>
     );
 }

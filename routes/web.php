@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\FriendshipController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -24,6 +26,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/posts/{post}/like', [PostController::class, 'toggleLike'])->name('posts.like');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('posts.comments.store');
+    Route::post('/posts/{post}/share', [PostController::class, 'share'])->name('posts.share');
     Route::get('/members', [MemberController::class, 'index'])->name('members.index');
     Route::get('/members/{user}', [MemberController::class, 'show'])->name('members.show');
     Route::post('/friends/{user}', [FriendController::class, 'store'])->name('friends.store');
@@ -32,10 +35,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/friendships/{friendship}/decline', [FriendshipController::class, 'decline'])->name('friendships.decline');
     Route::delete('/friendships/{friendship}', [FriendshipController::class, 'destroy'])->name('friendships.destroy');
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+    Route::get('/messages/{conversation}', [MessageController::class, 'show'])->name('messages.show');
+    Route::post('/conversations', [ConversationController::class, 'store'])->name('conversations.store');
+    Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('conversations.messages.store');
     Route::get('/me', [ProfileController::class, 'show'])->name('profile.show');
     Route::patch('/me', [ProfileController::class, 'updateDetails'])->name('profile.details.update');
     Route::post('/me/avatar', [ProfileController::class, 'storeAvatar'])->name('profile.avatar.store');
     Route::delete('/me/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
+    Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+    Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
+    Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
+    Route::post('/tasks/{task}/complete', [TaskController::class, 'toggleComplete'])->name('tasks.complete');
 });
 
 Route::middleware('auth')->group(function () {

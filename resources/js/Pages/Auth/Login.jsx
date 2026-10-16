@@ -109,14 +109,25 @@ export default function Login({ status, canResetPassword }) {
                 <span className="h-px flex-1 bg-line" />
             </div>
 
-            <Link
-                href={route('guest.login')}
-                method="post"
-                as="button"
-                className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-line bg-white text-sm font-semibold text-black hover:bg-wash"
-            >
-                Continue as Guest
-            </Link>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <Link
+                    href={route('guest.login')}
+                    method="post"
+                    as="button"
+                    className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-line bg-white text-sm font-semibold text-black hover:bg-wash"
+                >
+                    Continue as Guest
+                </Link>
+                {/* Demo-only: remove Continue as Manager before real use. */}
+                <Link
+                    href={route('manager.login')}
+                    method="post"
+                    as="button"
+                    className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-line bg-white text-sm font-semibold text-black hover:bg-wash"
+                >
+                    Continue as Manager
+                </Link>
+            </div>
         </AuthFrame>
     );
 }

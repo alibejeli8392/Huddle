@@ -3,7 +3,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\ConversationType;
 use App\FriendshipStatus;
+use App\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -15,12 +17,31 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['name', 'email', 'password', 'title', 'department', 'bio', 'avatar_path'])]
+#[Fillable(['name', 'email', 'password', 'title', 'department', 'bio', 'avatar_path', 'role'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
+    public const ROLE_EMPLOYEE = 'employee';
+
+    public const ROLE_MANAGER = 'manager';
+
+    /**
+     * @var list<string>
+     */
+    protected $appends = [
+        'avatar_url',
+    ];
+
+    /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'role' => self::ROLE_EMPLOYEE,
+    ];
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
@@ -34,6 +55,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRole::class,
         ];
     }
 
@@ -68,12 +90,69 @@ class User extends Authenticatable
         ];
     }
 
+    public function isManager(): bool
+    {
+        return $this->role === UserRole::Manager;
+    }
+
+    public function isEmployee(): bool
+    {
+        return $this->role === UserRole::Employee;
+    }
+
+    /**
+     * Employees in this member's department (for task progress denominators).
+     */
+    public function departmentEmployeeCount(): int
+    {
+        if (! is_string($this->department) || $this->department === '') {
+            return 0;
+        }
+
+        return static::query()
+            ->where('department', $this->department)
+            ->where('role', UserRole::Employee)
+            ->count();
+    }
+
+    /**
+     * Today's department tasks this employee has not marked done.
+     */
+    public function incompleteTodayTaskCount(): int
+    {
+        if (! $this->isEmployee() || ! is_string($this->department) || $this->department === '') {
+            return 0;
+        }
+
+        return Task::query()
+            ->forDepartment($this->department)
+            ->dueOn(now()->toDateString())
+            ->whereDoesntHave('completions', fn (Builder $query) => $query->where('user_id', $this->id))
+            ->count();
+    }
+
     /**
      * @return HasMany<Post, $this>
      */
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
+    }
+
+    /**
+     * @return HasMany<Task, $this>
+     */
+    public function createdTasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'created_by');
+    }
+
+    /**
+     * @return HasMany<TaskCompletion, $this>
+     */
+    public function taskCompletions(): HasMany
+    {
+        return $this->hasMany(TaskCompletion::class);
     }
 
     /**
@@ -143,6 +222,90 @@ class User extends Authenticatable
         return $this->belongsToMany(Conversation::class)
             ->withPivot('last_read_at')
             ->withTimestamps();
+    }
+
+    /**
+     * Conversations newest activity first, in the shape the messages screen uses.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function inboxItems(): array
+    {
+        return $this->conversations()
+            ->with(['users', 'latestMessage'])
+            ->withCount([
+                'messages as unread_count' => fn (Builder $query) => $query->unreadFor($this),
+            ])
+            ->withMax('messages', 'created_at')
+            ->orderByRaw('coalesce(messages_max_created_at, conversations.created_at) desc')
+            ->orderByDesc('conversations.id')
+            ->get()
+            ->map(fn (Conversation $conversation): array => $conversation->toInboxItem($this))
+            ->all();
+    }
+
+    public function unreadMessageCount(): int
+    {
+        return Message::query()->unreadFor($this)->count();
+    }
+
+    /**
+     * Accepted friends, for the new-message picker and the share dialog.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function friendCards(): array
+    {
+        return $this->friends()
+            ->orderBy('name')
+            ->get()
+            ->map(fn (User $friend): array => $friend->toAuthorCard())
+            ->all();
+    }
+
+    /**
+     * Friends and group chats the share dialog can offer.
+     *
+     * @return array{friends: array<int, array<string, mixed>>, groups: array<int, array<string, mixed>>}
+     */
+    public function shareTargets(): array
+    {
+        return [
+            'friends' => $this->friendCards(),
+            'groups' => $this->conversations()
+                ->where('conversations.type', ConversationType::Group)
+                ->orderBy('conversations.name')
+                ->get(['conversations.id', 'conversations.name'])
+                ->map(fn (Conversation $conversation): array => [
+                    'id' => $conversation->id,
+                    'name' => $conversation->name,
+                ])
+                ->all(),
+        ];
+    }
+
+    /**
+     * Drop a post into each chosen conversation. A friend target opens their direct chat.
+     *
+     * @param  array<int, array{type: string, id: int|string}>  $targets
+     */
+    public function sharePost(Post $post, array $targets): void
+    {
+        DB::transaction(function () use ($post, $targets): void {
+            foreach ($targets as $target) {
+                $id = (int) $target['id'];
+
+                $conversation = $target['type'] === 'conversation'
+                    ? Conversation::query()->findOrFail($id)
+                    : Conversation::findOrCreateDirect($this, User::query()->findOrFail($id));
+
+                $conversation->messages()->create([
+                    'user_id' => $this->id,
+                    'body' => '',
+                    'shared_post_id' => $post->id,
+                ]);
+            }
+        });
     }
 
     public function friendshipWith(User $other): ?Friendship

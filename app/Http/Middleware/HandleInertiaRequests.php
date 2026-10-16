@@ -43,6 +43,24 @@ class HandleInertiaRequests extends Middleware
 
                 return $user->incomingFriendRequests()->count();
             },
+            'unreadMessageCount' => function () use ($request): int {
+                $user = $request->user();
+
+                if ($user === null) {
+                    return 0;
+                }
+
+                return $user->unreadMessageCount();
+            },
+            'incompleteTaskCount' => function () use ($request): int {
+                $user = $request->user();
+
+                if ($user === null) {
+                    return 0;
+                }
+
+                return $user->incompleteTodayTaskCount();
+            },
         ];
     }
 }

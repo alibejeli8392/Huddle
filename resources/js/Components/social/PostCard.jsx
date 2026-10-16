@@ -1,24 +1,24 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import Avatar from '@/Components/ui/Avatar';
 import Button from '@/Components/ui/Button';
 import Dialog from '@/Components/ui/Dialog';
 import { CommentIcon, HeartIcon, ShareIcon } from '@/Components/ui/Icons';
-import { useHuddle } from '@/context/HuddleContext';
 import { timeAgo } from '@/utils/time';
 
 export default function PostCard({ post }) {
-    const { viewer, friendsOf, state, sharePost } = useHuddle();
+    const { shareTargets } = usePage().props;
     const [pop, setPop] = useState(false);
     const [commentsOpen, setCommentsOpen] = useState(false);
     const [draft, setDraft] = useState('');
     const [shareOpen, setShareOpen] = useState(false);
+    const [shareError, setShareError] = useState('');
     const [sharedWith, setSharedWith] = useState('');
     const author = post.author;
     const comments = post.comments ?? [];
-    const friends = viewer ? friendsOf(viewer.id) : [];
-    const groups = state.groups ?? [];
+    const friends = shareTargets?.friends ?? [];
+    const groups = shareTargets?.groups ?? [];
 
     useEffect(() => {
         if (!sharedWith) {
@@ -63,10 +63,23 @@ export default function PostCard({ post }) {
         router.delete(route('posts.destroy', post.id), { preserveScroll: true });
     };
 
-    const sendShare = (destination, label) => {
-        sharePost(post, destination);
-        setShareOpen(false);
-        setSharedWith(label);
+    const sendShare = (target, label) => {
+        setShareError('');
+        router.post(
+            route('posts.share', post.id),
+            { targets: [target] },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setShareOpen(false);
+                    setSharedWith(label);
+                },
+                onError: (formErrors) => {
+                    const first = Object.values(formErrors)[0];
+                    setShareError(Array.isArray(first) ? first[0] : first);
+                },
+            },
+        );
     };
 
     return (
@@ -166,6 +179,7 @@ export default function PostCard({ post }) {
 
             <Dialog open={shareOpen} title="Share post" onClose={() => setShareOpen(false)}>
                 <div className="space-y-4">
+                        {shareError && <p className="text-sm text-heart">{shareError}</p>}
                         <section>
                             <h3 className="mb-2 text-xs font-semibold tracking-wide text-muted uppercase">Friends</h3>
                             {friends.length === 0 ? (
@@ -176,7 +190,7 @@ export default function PostCard({ post }) {
                                         <li key={friend.id}>
                                             <button
                                                 type="button"
-                                                onClick={() => sendShare({ kind: 'dm', id: friend.id }, friend.name)}
+                                                onClick={() => sendShare({ type: 'friend', id: friend.id }, friend.name)}
                                                 className="flex w-full items-center gap-3 py-2 text-left hover:bg-hover"
                                             >
                                                 <Avatar src={friend.avatar} name={friend.name} size="sm" />
@@ -197,7 +211,7 @@ export default function PostCard({ post }) {
                                         <li key={group.id}>
                                             <button
                                                 type="button"
-                                                onClick={() => sendShare({ kind: 'group', id: group.id }, group.name)}
+                                                onClick={() => sendShare({ type: 'conversation', id: group.id }, group.name)}
                                                 className="w-full py-2 text-left text-sm font-semibold hover:bg-hover"
                                             >
                                                 {group.name}

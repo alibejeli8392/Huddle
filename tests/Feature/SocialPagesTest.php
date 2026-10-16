@@ -18,6 +18,7 @@ class SocialPagesTest extends TestCase
         $this->get(route('members.index'))->assertRedirect(route('login'));
         $this->get(route('friends.index'))->assertRedirect(route('login'));
         $this->get(route('messages.index'))->assertRedirect(route('login'));
+        $this->get(route('tasks.index'))->assertRedirect(route('login'));
         $this->get(route('profile.show'))->assertRedirect(route('login'));
     }
 
@@ -27,27 +28,57 @@ class SocialPagesTest extends TestCase
 
         $this->actingAs($user)->get('/')->assertRedirect(route('dashboard'));
 
-        $pages = [
-            'dashboard' => 'Feed/Index',
-            'members.index' => 'Members/Index',
-            'friends.index' => 'Friends/Index',
-            'messages.index' => 'Messages/Index',
-        ];
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Feed/Index')
+                ->has('posts')
+                ->has('shareTargets.friends')
+                ->has('shareTargets.groups')
+                ->where('unreadMessageCount', 0)
+            );
 
-        foreach ($pages as $name => $component) {
-            $this->actingAs($user)
-                ->get(route($name))
-                ->assertOk()
-                ->assertInertia(fn (Assert $page) => $page
-                    ->component($component)
-                    ->where('viewer.email', $user->email)
-                    ->where('viewer.name', $user->name)
-                    ->has('members')
-                    ->has('posts')
-                    ->has('friendships')
-                    ->has('messages')
-                );
-        }
+        $this->actingAs($user)
+            ->get(route('members.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Members/Index')
+                ->has('directory')
+                ->missing('messages')
+            );
+
+        $this->actingAs($user)
+            ->get(route('friends.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Friends/Index')
+                ->has('incomingRequests')
+                ->has('outgoingRequests')
+                ->has('friends')
+                ->missing('messages')
+            );
+
+        $this->actingAs($user)
+            ->get(route('messages.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Messages/Index')
+                ->has('conversations')
+                ->has('friends')
+                ->where('activeConversation', null)
+                ->where('unreadMessageCount', 0)
+                ->missing('posts')
+            );
+
+        $this->actingAs($user)
+            ->get(route('tasks.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Tasks/Index')
+                ->has('todayTasks')
+                ->where('incompleteTaskCount', 0)
+            );
 
         $this->actingAs($user)
             ->get(route('profile.show'))
@@ -58,53 +89,8 @@ class SocialPagesTest extends TestCase
                 ->where('profile.name', $user->name)
                 ->where('profile.postCount', 0)
                 ->where('profile.friendCount', 0)
-                ->has('messages')
+                ->missing('messages')
+                ->missing('viewer')
             );
-    }
-
-    public function test_preview_includes_pending_requests_and_unread_messages(): void
-    {
-        $user = User::factory()->create();
-        $viewerId = (string) $user->id;
-
-        $this->actingAs($user)
-            ->get(route('messages.index'))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('friendships', fn ($friendships) => $friendships
-                    ->where('toId', $viewerId)
-                    ->where('status', 'pending')
-                    ->count() === 4)
-                ->where('messages', fn ($messages) => $messages
-                    ->where('unread', true)
-                    ->where('toId', $viewerId)
-                    ->count() === 3)
-                ->where('groupMessages', fn ($messages) => $messages
-                    ->where('unread', true)
-                    ->where('fromId', '!=', $viewerId)
-                    ->count() === 2)
-            );
-    }
-
-    public function test_preview_chat_messages_are_separate_from_feed_posts(): void
-    {
-        $user = User::factory()->create();
-
-        $this->actingAs($user)
-            ->get(route('messages.index'))
-            ->assertOk()
-            ->assertInertia(function (Assert $page) {
-                $page->component('Messages/Index');
-
-                $props = $page->toArray()['props'];
-                $postTexts = collect($props['posts'])->pluck('text');
-                $chatTexts = collect($props['messages'])->pluck('text')
-                    ->merge(collect($props['groupMessages'])->pluck('text'))
-                    ->filter();
-
-                $this->assertNotEmpty($postTexts->all());
-                $this->assertNotEmpty($chatTexts->all());
-                $this->assertSame([], $postTexts->intersect($chatTexts)->values()->all());
-            });
     }
 }

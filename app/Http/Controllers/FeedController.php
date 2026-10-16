@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
-use App\Support\PreviewData;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -11,7 +10,7 @@ use Inertia\Response;
 class FeedController extends Controller
 {
     /**
-     * Home feed. Friends and messages on this page are still preview data.
+     * Home feed of posts, likes, and comments.
      */
     public function index(Request $request): Response
     {
@@ -33,8 +32,8 @@ class FeedController extends Controller
             ->all();
 
         return Inertia::render('Feed/Index', [
-            ...PreviewData::forUser($user),
             'posts' => $posts,
+            'shareTargets' => $user->shareTargets(),
         ]);
     }
 }
