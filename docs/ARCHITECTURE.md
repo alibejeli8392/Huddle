@@ -50,7 +50,7 @@ Named URLs from PHP are available in React through Ziggy (`route('dashboard')`).
 | `routes/auth.php` | Login, register, logout, password reset. | Breeze auth URLs. |
 | `database/migrations/` | Tables. Users, posts, likes, comments, friendships, conversations, and messages, plus sessions, cache, and jobs. | Schema changes only. |
 | `database/factories/` | Factories for users and the social models. | Test data. |
-| `database/seeders/DemoData.php` | Sample members and posts that `DemoSeeder` writes. | Demo catalog, not a screen. |
+| `database/seeders/DemoData.php` | Sample members and posts that `DemoSeeder` writes (including Engineering managers Ali and Mahmood). | Demo catalog, not a screen. |
 | `resources/js/Pages/` | One Inertia screen per file. The path must match `Inertia::render('…')`. | A page is a route, not a reusable widget. |
 | `resources/js/Layouts/` | Chrome around a page. See the two systems below. | Nav and page frame, not the page body. |
 | `resources/js/Components/ui/` | New design primitives: `Button`, `Avatar`, `Icons`, `Logo`, `AuthFrame`. | Shared look, no feed or friends logic. |
@@ -97,7 +97,7 @@ Each of those files has a short comment at the top saying which system it belong
 | Profile | `Pages/Profile/Show.jsx` | `GET /me` loads the signed-in member from the database. `PATCH /me` saves title, department, and bio. `POST /me/avatar` and `DELETE /me/avatar` change the photo. Account name, email, password, and delete stay on `PATCH /profile`. |
 | Member | `Pages/Members/Show.jsx` | `GET /members/{user}` is a read-only profile and that person's posts. Share on those posts uses the same friend and group list as Home. Your own id redirects to `/me`. |
 | Tasks | `Pages/Tasks/Index.jsx` | `GET /tasks` lists today's department tasks. Employees toggle `POST /tasks/{task}/complete`. Managers create with `POST /tasks` and delete with `DELETE /tasks/{task}`. |
-| Login / Register / password | `Pages/Auth/*.jsx` | `routes/auth.php` (includes demo guest and manager login) |
+| Login / Register / password | `Pages/Auth/*.jsx` | `routes/auth.php` (includes demo “Continue as Guest”). Managers use the normal login form. |
 
 Posts on Home come from the `posts`, `post_likes`, and `comments` tables. People, friends, and profiles come from `users` and `friendships`. Messages and groups come from `conversations`, `conversation_user`, and `messages`. Tasks come from `tasks` and `task_completions`. The Friends badge is the shared `friendRequestCount`. The Messages badge is the shared `unreadMessageCount`. The Tasks badge is the shared `incompleteTaskCount` (employees only).
 

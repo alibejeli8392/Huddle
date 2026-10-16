@@ -6,6 +6,26 @@ A running record of what has been built. Add a new dated entry after each major 
 
 ---
 
+## 2026-10-16 — Demo managers, Engineering tasks, Home session fix
+
+Walkthrough accounts and a client session bug; no schema changes.
+
+- Root cause: Navbar `prefetch` could reuse a Home page cached under a previous account (often guest) after logging in as someone else. Fix: flush Inertia’s prefetch cache when `auth.user` changes, and clear history on login/logout. Regression: form-login as a manager, then visit `/dashboard` and `/`, still that manager.
+- Seeded Engineering managers Ali Bejeli and Mahmood Ayaz (westcliff emails, initials avatars), demo-password logins for them plus Jordan, guest, and Leslie (`manager@huddle.app`). Engineering gets about six today tasks (varied “X of Y done”) and a few tomorrow, created by Ali/Mahmood with completions from eng employees including Jordan.
+- Removed “Continue as Manager” (route, controller, login button, shortcut tests). Leslie and ManagerUserSeeder remain for Design tasks. Login still has “Continue as Guest”. Demo accounts use a simple demo password defined in the seeders (not shown in the UI).
+
+---
+
+## 2026-10-16 — Expanded demo company (photos, graph, chats)
+
+Polished seed data only — still no app/schema/UI changes.
+
+- About 40 people (38 `@northstar.io` plus guest and manager) with sharp Pexels portraits (400px), not randomuser.me. Original members keep their earlier Pexels photo ids. Design has 7 employees so manager task progress is meaningful.
+- About 45 feed posts over 14 days; guest has ~12 friends, 4 incoming and 2 outgoing requests; ~8 direct chats and 5 groups with longer threads (~6 unread). Today’s Design tasks show varied completion counts across the team.
+- Demo reset also clears demo-only friendships before rewrite. Other users stay untouched.
+
+---
+
 ## 2026-10-16 — Daily department tasks
 
 Members see today's work for their department. Managers create and delete those tasks. No recurring tasks, no per-person assignment, and no comments on tasks.
@@ -14,8 +34,8 @@ Members see today's work for their department. Managers create and delete those 
 - `tasks` and `task_completions` store department work and who marked a task done. Completion is per person; one member's Done does not mark it done for everyone.
 - `GET /tasks` shows today's list for employees (with a Done toggle and "X of Y done" for their own list) and a create form plus today/upcoming lists for managers (with department progress and delete).
 - Employees cannot create or delete tasks (403). Managers only manage their own department. `APP_TIMEZONE=America/Los_Angeles` so "today" matches local time.
-- Login has demo-only "Continue as Manager" (`POST /manager-login` → `/tasks`). The Tasks nav item badges incomplete today tasks for employees only.
-- `DemoSeeder` adds about six Design tasks for today (two already done by the guest), a few for tomorrow, and a couple in Engineering.
+- The Tasks nav item badges incomplete today tasks for employees only. Managers (including Leslie Chen) sign in through the normal login form.
+- `DemoSeeder` adds about six Design tasks for today (two already done by the guest), a few for tomorrow, and Engineering tasks created by the Engineering managers.
 
 ---
 

@@ -9,8 +9,8 @@ use Illuminate\Database\Seeder;
 class ManagerUserSeeder extends Seeder
 {
     /**
-     * Demo manager account used by "Continue as Manager".
-     * Same department as guest@huddle.app. Safe to run more than once.
+     * Demo Design manager (Leslie Chen). Same department as guest@huddle.app.
+     * Safe to run more than once.
      */
     public function run(): void
     {
@@ -23,12 +23,12 @@ class ManagerUserSeeder extends Seeder
             ['email' => 'manager@huddle.app'],
             [
                 'name' => 'Leslie Chen',
-                'password' => 'password',
+                'password' => DemoSeeder::DEMO_PASSWORD,
                 'email_verified_at' => now(),
                 'title' => 'Design Manager',
                 'department' => $department,
-                'bio' => 'I keep the day-to-day work clear so the team can ship.',
-                'avatar_path' => 'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=640&w=640',
+                'bio' => 'I keep Design’s day-to-day clear so the team can ship. I protect critique time, unblock reviews, and somehow always have a spare sticky pad.',
+                'avatar_path' => 'https://images.pexels.com/photos/2773977/pexels-photo-2773977.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop',
                 'role' => UserRole::Manager,
             ],
         );

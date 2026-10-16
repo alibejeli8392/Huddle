@@ -123,7 +123,6 @@ export default function Show({ tab = 'profile', mustVerifyEmail, status, profile
 
                             <div className="w-full flex-1">
                                 <h1 className="text-2xl font-light tracking-tight">{profile.name}</h1>
-                                <p className="mt-1 text-sm text-muted">{profile.email}</p>
                                 <div className="mt-4 flex gap-6 text-sm">
                                     <span>
                                         <strong className="font-semibold">{profile.postCount}</strong>{' '}
