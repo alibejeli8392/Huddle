@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -135,8 +136,21 @@ class Conversation extends Model
 
     public function markReadBy(User $user): void
     {
+        // Cover every message already in the thread. Wall-clock now() alone leaves
+        // later-today (or clock-skewed) rows unread under created_at > last_read_at.
+        $latestMessageAt = $this->messages()->max('created_at');
+        $readAt = now();
+
+        if ($latestMessageAt !== null) {
+            $latest = Carbon::parse($latestMessageAt);
+
+            if ($latest->greaterThan($readAt)) {
+                $readAt = $latest;
+            }
+        }
+
         $this->users()->updateExistingPivot($user->id, [
-            'last_read_at' => now(),
+            'last_read_at' => $readAt,
         ]);
     }
 

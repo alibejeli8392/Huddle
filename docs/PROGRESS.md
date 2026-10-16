@@ -6,6 +6,17 @@ A running record of what has been built. Add a new dated entry after each major 
 
 ---
 
+## 2026-10-16 — Opening a conversation clears unread
+
+Bugfix for Messages badges; no schema or feature changes.
+
+- Root cause: `markReadBy` set `last_read_at` to wall-clock `now()`. Unread uses `messages.created_at > last_read_at`. Demo threads (and any later-today timestamps) left rows after `now()`, so opening a chat did not clear the nav badge or that conversation’s unread count — even after reload.
+- Ruled out: Inertia `only`/`preserveState` (list open uses a full `router.get`), count-before-update order (`markReadBy` runs before `inboxItems` and the lazy shared prop), prefetch cache on Messages links, and disagreeing count paths (badge and list both use `Message::unreadFor`).
+- Fix: `markReadBy` sets `last_read_at` to `max(now(), latest message created_at)`. Demo `thread()` shifts any future wall-clock times so the latest line is one minute before now. Re-seeded with `DemoSeeder` (no migrate:fresh).
+- Regression: `UnreadMessagesOnOpenTest` covers direct and group — same-response shared prop + list unread, reload, new message after read counts again, own messages never unread.
+
+---
+
 ## 2026-10-16 — Demo managers, Engineering tasks, Home session fix
 
 Walkthrough accounts and a client session bug; no schema changes.

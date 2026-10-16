@@ -1009,10 +1009,24 @@ class DemoSeeder extends Seeder
      */
     private function thread(array $rows): array
     {
-        return array_map(
+        $lines = array_map(
             fn (array $row): array => [$row[0], $row[1], now()->subDays($row[2])->setTime($row[3], $row[4])],
             $rows,
         );
+
+        // Wall-clock times later today would still look unread after markReadBy(now()).
+        $latest = collect($lines)->max(fn (array $line): int => $line[2]->getTimestamp());
+        $ceiling = now()->getTimestamp();
+
+        if ($latest > $ceiling) {
+            $shiftSeconds = $latest - $ceiling + 60;
+            $lines = array_map(
+                fn (array $line): array => [$line[0], $line[1], $line[2]->copy()->subSeconds($shiftSeconds)],
+                $lines,
+            );
+        }
+
+        return $lines;
     }
 
     /**
